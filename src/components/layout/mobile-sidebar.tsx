@@ -23,13 +23,13 @@ export function MobileSidebar({
         className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
         onClick={onClose}
       />
-      <aside className="absolute left-0 top-0 flex h-full w-72 flex-col bg-surface shadow-xl">
-        <div className="flex h-16 items-center gap-2 px-4">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+      <aside className="absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col bg-surface shadow-xl">
+        <div className="flex h-20 shrink-0 items-center gap-2.5 px-5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground">
             <GraduationCap className="size-5" />
           </div>
           <span className="text-[15px] font-semibold tracking-tight">
-            Nova <span className="text-primary">CRM</span>
+            L2E <span className="text-primary">CRM</span>
           </span>
           <button
             onClick={onClose}
@@ -54,9 +54,10 @@ export function MobileSidebar({
                       <li key={item.href}>
                         <Link
                           href={item.href}
+                          aria-current={active ? "page" : undefined}
                           onClick={onClose}
                           className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                            "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
                             active
                               ? "bg-primary-soft text-primary"
                               : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
@@ -73,6 +74,21 @@ export function MobileSidebar({
             ))}
           </div>
         </nav>
+        <div className="border-t border-border p-3">
+          <div className="flex items-center gap-2.5 rounded-2xl px-2.5 py-2">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+              SR
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-foreground">
+                Sadman Rahman
+              </span>
+              <span className="block truncate text-xs text-muted-foreground">
+                Admissions Lead
+              </span>
+            </span>
+          </div>
+        </div>
       </aside>
     </div>
   );

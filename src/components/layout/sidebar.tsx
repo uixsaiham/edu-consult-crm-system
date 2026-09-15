@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, GraduationCap } from "lucide-react";
+import { ChevronsLeft, GraduationCap, Settings } from "lucide-react";
 import { navSections } from "./nav-items";
 import { cn } from "@/lib/utils";
 
@@ -18,23 +18,24 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "hidden md:flex h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 ease-out",
+        "hidden md:flex h-full shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 ease-out",
         collapsed ? "w-[76px]" : "w-64"
       )}
     >
-      <div className="flex h-16 items-center gap-2 px-4">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+      <div className={cn("flex shrink-0 items-center gap-2.5", collapsed ? "flex-col px-3 py-4" : "h-20 px-5")}>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground shadow-[0_6px_16px_-4px_hsl(var(--shadow-color)/0.4)]">
           <GraduationCap className="size-5" />
         </div>
         {!collapsed && (
           <span className="truncate text-[15px] font-semibold tracking-tight">
-            Nova <span className="text-primary">CRM</span>
+            L2E <span className="text-primary">CRM</span>
           </span>
         )}
         <button
           onClick={onToggle}
-          className="ml-auto flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-          aria-label="Collapse sidebar"
+          className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground", !collapsed && "ml-auto")}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
         >
           <ChevronsLeft
             className={cn("size-4 transition-transform", collapsed && "rotate-180")}
@@ -42,8 +43,8 @@ export function Sidebar({
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-2">
-        <div className="flex flex-col gap-5">
+      <nav className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex flex-col gap-6">
           {navSections.map((section) => (
             <div key={section.label}>
               {!collapsed && (
@@ -62,9 +63,10 @@ export function Sidebar({
                       )}
                       <Link
                         href={item.href}
+                        aria-current={active ? "page" : undefined}
                         title={collapsed ? item.label : undefined}
                         className={cn(
-                          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
                           active
                             ? "bg-primary-soft text-primary"
                             : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
@@ -86,6 +88,32 @@ export function Sidebar({
           ))}
         </div>
       </nav>
+
+      <div className="border-t border-border p-3">
+        <button
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-2xl px-2.5 py-2 text-left transition-colors hover:bg-surface-hover",
+            collapsed && "justify-center"
+          )}
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            SR
+          </span>
+          {!collapsed && (
+            <>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-foreground">
+                  Sadman Rahman
+                </span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  Admissions Lead
+                </span>
+              </span>
+              <Settings className="size-4 shrink-0 text-muted-foreground" />
+            </>
+          )}
+        </button>
+      </div>
     </aside>
   );
 }

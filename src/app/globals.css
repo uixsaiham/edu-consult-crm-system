@@ -1,70 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #f5f6fb;
+  --background: #f8fafc;
   --surface: #ffffff;
-  --surface-hover: #f1f2f9;
-  --surface-muted: #f8f9fd;
-  --foreground: #14152b;
-  --muted-foreground: #6b7085;
-  --border: #e7e8f2;
-  --border-strong: #d8dae8;
+  --surface-hover: #f1f5f9;
+  --surface-muted: #f8fafc;
+  --foreground: #0f172a;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
 
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-foreground: #ffffff;
-  --primary-soft: #eef0fd;
+  --primary-soft: #eef2ff;
 
-  --accent: #0d9488;
-  --accent-soft: #e6f6f4;
+  --accent: #f59e0b;
+  --accent-soft: #fef3c7;
 
-  --success: #16a34a;
-  --success-soft: #e9f9ef;
-  --warning: #d97706;
-  --warning-soft: #fef3e2;
-  --danger: #dc2626;
-  --danger-soft: #fdeaea;
+  --success: #10b981;
+  --success-soft: #ecfdf5;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
 
   --ring: #4f46e5;
 
   --chart-1: #4f46e5;
-  --chart-2: #0d9488;
+  --chart-2: #f59e0b;
   --chart-3: #f59e0b;
-  --chart-4: #ec4899;
-  --chart-5: #6366f1;
-  --chart-6: #14b8a6;
-  --chart-7: #f97316;
-  --chart-8: #8b5cf6;
-  --chart-9: #22c55e;
-  --chart-10: #64748b;
+  --chart-4: #6366f1;
+  --chart-5: #fb923c;
+  --chart-6: #10b981;
+  --chart-7: #4f46e5;
+  --chart-8: #f59e0b;
+  --chart-9: #818cf8;
+  --chart-10: #94a3b8;
 
   --shadow-color: 220 20% 60%;
 }
 
 :root[data-theme="dark"] {
-  --background: #0b0c14;
-  --surface: #12131f;
-  --surface-hover: #181a2a;
-  --surface-muted: #15162340;
-  --foreground: #edeef7;
-  --muted-foreground: #8c90a8;
-  --border: #23243a;
-  --border-strong: #2c2e48;
+  --background: #090a10;
+  --surface: #11121c;
+  --surface-hover: #171926;
+  --surface-muted: #141622;
+  --foreground: #f1f3f9;
+  --muted-foreground: #9499b3;
+  --border: #1f2133;
+  --border-strong: #2c2e45;
 
   --primary: #6366f1;
-  --primary-hover: #7880f5;
+  --primary-hover: #4f46e5;
   --primary-foreground: #ffffff;
-  --primary-soft: #1c1d3a;
+  --primary-soft: #1e1b4b;
 
-  --accent: #2dd4bf;
-  --accent-soft: #10262a;
+  --accent: #fbbf24;
+  --accent-soft: #451a03;
 
-  --success: #4ade80;
-  --success-soft: #10281a;
+  --success: #10b981;
+  --success-soft: #052e16;
   --warning: #fbbf24;
-  --warning-soft: #2c2210;
+  --warning-soft: #451a03;
   --danger: #f87171;
-  --danger-soft: #2c1616;
+  --danger-soft: #450a0a;
 
   --ring: #6366f1;
 
@@ -98,8 +99,8 @@
 
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 * {
@@ -108,6 +109,7 @@
 
 html {
   color-scheme: light;
+  font-family: var(--font-sans);
 }
 
 html[data-theme="dark"] {
@@ -115,7 +117,12 @@ html[data-theme="dark"] {
 }
 
 body {
+  font-family: var(--font-sans);
   background: var(--background);
+  background-image:
+    radial-gradient(800px circle at 15% -10%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 60%),
+    radial-gradient(700px circle at 85% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%);
+  background-attachment: fixed;
   color: var(--foreground);
 }
 
@@ -147,5 +154,45 @@ html[data-theme="dark"] .theme-icon-dark {
 }
 
 .card-shadow {
-  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 8px 24px -12px hsl(var(--shadow-color) / 0.12);
+  box-shadow:
+    0 1px 2px hsl(var(--shadow-color) / 0.04),
+    0 2px 8px -2px hsl(var(--shadow-color) / 0.06),
+    0 20px 44px -24px hsl(var(--shadow-color) / 0.18);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+
+.card-shadow:hover {
+  box-shadow:
+    0 2px 4px hsl(var(--shadow-color) / 0.05),
+    0 4px 14px -2px hsl(var(--shadow-color) / 0.08),
+    0 28px 56px -24px hsl(var(--shadow-color) / 0.26);
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-sweep 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+

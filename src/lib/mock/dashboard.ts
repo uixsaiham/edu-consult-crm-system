@@ -65,7 +65,11 @@ export interface PersonPerformance {
 
 export interface ActivityItem {
   id: string;
+  type: "status-change" | "note-create" | "follow-up";
   title: string;
+  targetId: string;
+  fromStatus?: string;
+  toStatus?: string;
   description: string;
   actor: string;
   time: string;
@@ -84,6 +88,7 @@ export function getStatCards(): StatCardData[] {
       value: "137.0K",
       deltaLabel: "17.5% less",
       trend: "down",
+      split: { leftLabel: "Qualified", rightLabel: "In Review", leftPercent: 68 },
       spark: [31, 24, 27, 19, 22, 14, 18, 12],
     },
     {
@@ -101,6 +106,7 @@ export function getStatCards(): StatCardData[] {
       value: "3.0K",
       deltaLabel: "49.1% less",
       trend: "down",
+      split: { leftLabel: "Direct Partner", rightLabel: "Sub-Agent", leftPercent: 64 },
       spark: [14, 17, 13, 15, 10, 12, 9, 8],
     },
     {
@@ -191,13 +197,159 @@ export function getAgentPerformance(): PersonPerformance[] {
 
 export function getRecentActivity(): ActivityItem[] {
   return [
-    { id: "1", title: "Status changed", description: "BHE-900247862 moved New → Not Interested", actor: "Rowshon Ara Hossain", time: "3m ago" },
-    { id: "2", title: "Follow-up completed", description: "Call follow-up logged on BHE-900247609", actor: "Ummay Saiha Limu", time: "18m ago" },
-    { id: "3", title: "Note added", description: "Document checklist updated on BHE-900244740", actor: "Md Sahed", time: "42m ago" },
-    { id: "4", title: "Status changed", description: "BHE-900244740 moved No Response → Future Intake", actor: "Md Sahed", time: "1h ago" },
-    { id: "5", title: "Note added", description: "IELTS score recorded on BHE-900247827", actor: "Ummay Saiha Limu", time: "2h ago" },
-    { id: "6", title: "Status changed", description: "BHE-900247837 moved New → Not Interested", actor: "Tahsin Chowdhury", time: "3h ago" },
-    { id: "7", title: "Follow-up completed", description: "Email follow-up logged on BHE-900246499", actor: "Tahsin Chowdhury", time: "5h ago" },
+    {
+      id: "1",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900239258",
+      fromStatus: "New",
+      toStatus: "Unreachable",
+      description: "Student unreachable after 3 consecutive phone calls",
+      actor: "Ummay Saiha Limu",
+      time: "2m ago",
+    },
+    {
+      id: "2",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900239266",
+      description: "Note Data Create of this Application: verified passport copy & academic transcripts",
+      actor: "Ummay Saiha Limu",
+      time: "8m ago",
+    },
+    {
+      id: "3",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900239266",
+      fromStatus: "New",
+      toStatus: "No Response",
+      description: "Automated WhatsApp follow-up delivered, awaiting response",
+      actor: "Ummay Saiha Limu",
+      time: "15m ago",
+    },
+    {
+      id: "4",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900239280",
+      fromStatus: "Future Intake",
+      toStatus: "Not Potential",
+      description: "Applicant decided to pursue domestic university enrollment",
+      actor: "Ummay Saiha Limu",
+      time: "24m ago",
+    },
+    {
+      id: "5",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900239280",
+      description: "Note Data Create of this Application: requested deferral advice for Jan 2027 intake",
+      actor: "Ummay Saiha Limu",
+      time: "32m ago",
+    },
+    {
+      id: "6",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900242445",
+      description: "Note Data Create of this Application: discussed tuition deposit requirement",
+      actor: "Md. Shariful Islam",
+      time: "45m ago",
+    },
+    {
+      id: "7",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900242445",
+      fromStatus: "New",
+      toStatus: "Not Interested",
+      description: "Lead stated budget constraints for UK postgraduate courses",
+      actor: "Md. Shariful Islam",
+      time: "55m ago",
+    },
+    {
+      id: "8",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900239280",
+      fromStatus: "New",
+      toStatus: "Future Intake",
+      description: "Moved to Sep 2027 intake watchlist per student request",
+      actor: "Ummay Saiha Limu",
+      time: "1h ago",
+    },
+    {
+      id: "9",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900229845",
+      fromStatus: "Hot",
+      toStatus: "Not Potential",
+      description: "IELTS requirement not met, English test retake declined",
+      actor: "Youna",
+      time: "1h ago",
+    },
+    {
+      id: "10",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900242435",
+      description: "Note Data Create of this Application: financial sponsorship affidavit received",
+      actor: "Md. Shariful Islam",
+      time: "2h ago",
+    },
+    {
+      id: "11",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900242435",
+      fromStatus: "New",
+      toStatus: "Not Interested",
+      description: "Lead opted for alternate regional consultancy service",
+      actor: "Md. Shariful Islam",
+      time: "2h ago",
+    },
+    {
+      id: "12",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900239285",
+      description: "Note Data Create of this Application: verified original graduation certificate",
+      actor: "Ummay Saiha Limu",
+      time: "3h ago",
+    },
+    {
+      id: "13",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900239285",
+      fromStatus: "New",
+      toStatus: "Not Potential",
+      description: "Applicant GPA does not meet university entry criteria",
+      actor: "Ummay Saiha Limu",
+      time: "3h ago",
+    },
+    {
+      id: "14",
+      type: "note-create",
+      title: "Note Create",
+      targetId: "bhe-900242426",
+      description: "Note Data Create of this Application: reminder email sent for missing CV",
+      actor: "Md. Shariful Islam",
+      time: "4h ago",
+    },
+    {
+      id: "15",
+      type: "status-change",
+      title: "Lead Status Change",
+      targetId: "bhe-900242426",
+      fromStatus: "New",
+      toStatus: "Not Interested",
+      description: "Lead shifted target country from UK to Canada",
+      actor: "Md. Shariful Islam",
+      time: "4h ago",
+    },
   ];
 }
 
@@ -212,5 +364,20 @@ export function getTopLeadSources(): LeadSource[] {
     { source: "WhatsApp", value: 21 },
     { source: "Others", value: 14 },
     { source: "Referral", value: 9 },
+  ];
+}
+
+export function getTop10LeadSources(): LeadSource[] {
+  return [
+    { source: "TikTok", value: 140 },
+    { source: "All Leads Import", value: 98 },
+    { source: "Facebook Ads", value: 91 },
+    { source: "CRM (Manual)", value: 74 },
+    { source: "Consultation Form", value: 61 },
+    { source: "Landing Page Form", value: 45 },
+    { source: "WhatsApp Direct", value: 32 },
+    { source: "University Fair", value: 24 },
+    { source: "Referral Partner", value: 18 },
+    { source: "Google Organic", value: 14 },
   ];
 }
