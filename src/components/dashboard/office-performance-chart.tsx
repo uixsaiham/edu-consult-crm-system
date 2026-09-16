@@ -205,7 +205,7 @@ export function OfficePerformanceChart() {
           <div className="flex items-center justify-between gap-1">
             <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground">
               <span className="size-1.5 rounded-full bg-white animate-pulse" />
-              TOP HUB
+              TOP OFFICE
             </span>
           </div>
           <div className="mt-2">
@@ -230,7 +230,12 @@ export function OfficePerformanceChart() {
             </span>
           </div>
           <div className="mt-2">
-            <p className="truncate text-xs font-bold tracking-tight text-foreground sm:text-sm">London/MCR/MK</p>
+            <p
+              className="truncate text-xs font-bold tracking-tight text-foreground sm:text-sm"
+              title="London, Manchester, Milton Keynes"
+            >
+              3 UK Offices
+            </p>
             <div className="mt-0.5 flex items-baseline gap-1">
               <span className="text-base font-bold text-foreground tabular-nums sm:text-lg">
                 {metrics.ukTotal.toLocaleString()}
@@ -246,7 +251,7 @@ export function OfficePerformanceChart() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-primary" />
-            <span className="font-semibold text-foreground">BD Offices:</span>
+            <span className="font-semibold text-foreground">Bangladesh Offices:</span>
             <span className="text-muted-foreground tabular-nums">{metrics.bdTotal.toLocaleString()} ({metrics.bdPct}%)</span>
           </div>
           <span className="text-border">|</span>
@@ -259,7 +264,7 @@ export function OfficePerformanceChart() {
 
         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
           <Globe2 className="size-3" />
-          5 Active Branches • Trailing 12M
+          5 Active Branches • Last 12 Months
         </span>
       </div>
 

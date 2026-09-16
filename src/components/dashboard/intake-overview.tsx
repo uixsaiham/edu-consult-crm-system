@@ -216,7 +216,7 @@ export function IntakeOverview() {
               <div className="flex items-center justify-between gap-2">
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+                    "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
                     isCurrent
                       ? "bg-primary text-primary-foreground"
                       : "bg-surface-muted text-muted-foreground group-hover:text-foreground"

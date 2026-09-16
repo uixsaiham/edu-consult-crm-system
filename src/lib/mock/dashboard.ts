@@ -147,10 +147,10 @@ export function getApplicationTrend(): ApplicationTrendPoint[] {
 
 export function getIntakePeriods(): IntakePeriod[] {
   return [
-    { id: "aug26", label: "Previous", month: "August 2026", applications: 214, tag: "previous" },
-    { id: "sep26", label: "Current", month: "September 2026", applications: 1156, tag: "current" },
-    { id: "oct26", label: "Upcoming", month: "October 2026", applications: 393, tag: "upcoming" },
-    { id: "nov26", label: "Following", month: "November 2026", applications: 158, tag: "following" },
+    { id: "aug26", label: "1 Month Ago", month: "August 2026", applications: 214, tag: "previous" },
+    { id: "sep26", label: "Current Intake", month: "September 2026", applications: 1156, tag: "current" },
+    { id: "oct26", label: "Next Month", month: "October 2026", applications: 393, tag: "upcoming" },
+    { id: "nov26", label: "In 2 Months", month: "November 2026", applications: 158, tag: "following" },
   ];
 }
 
