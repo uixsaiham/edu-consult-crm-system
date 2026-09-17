@@ -1,8 +1,9 @@
 // Mock data & option lists for the Leads module (All Leads list + Add Lead panel)
 
 import { branches, countries, counsellors, leadSources } from "@/lib/mock/applications";
+import { initialsFor } from "@/lib/utils";
 
-export { branches, countries, counsellors, leadSources };
+export { branches, countries, counsellors, leadSources, initialsFor };
 
 export type LeadStatus = "New" | "Contacted" | "Follow-up" | "Qualified" | "Converted" | "Lost";
 
@@ -27,18 +28,13 @@ export const leadStatusStyles: Record<LeadStatus, { dot: string; text: string; b
   New: { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
   Contacted: { dot: "bg-sky-500", text: "text-sky-600 dark:text-sky-400", bg: "bg-sky-50 dark:bg-sky-500/10" },
   "Follow-up": { dot: "bg-amber-500", text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
-  Qualified: { dot: "bg-indigo-500", text: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
+  Qualified: { dot: "bg-primary", text: "text-primary", bg: "bg-primary-soft" },
   Converted: { dot: "bg-teal-500", text: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-500/10" },
   Lost: { dot: "bg-rose-500", text: "text-rose-600 dark:text-rose-400", bg: "bg-rose-50 dark:bg-rose-500/10" },
 };
 
 export function makeLeadId() {
   return `LD-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase();
-}
-
-export function initialsFor(name: string) {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
 const rawLeads: Omit<LeadRow, "id" | "initials">[] = [

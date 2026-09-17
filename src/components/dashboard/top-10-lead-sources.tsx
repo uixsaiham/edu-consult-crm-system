@@ -173,7 +173,7 @@ export function Top10LeadSources() {
   const topChannel = listData[0];
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex h-full min-w-0 flex-col">
       <CardHeader
         icon={Megaphone}
         iconBg="bg-primary-soft"

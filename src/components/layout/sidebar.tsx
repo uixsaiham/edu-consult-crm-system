@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsLeft, GraduationCap, Settings } from "lucide-react";
+import { ChevronsLeft, Settings } from "lucide-react";
 import { navSections } from "./nav-items";
-import { cn } from "@/lib/utils";
+import { useUser } from "./user-context";
+import { cn, initialsFor } from "@/lib/utils";
 
 export function Sidebar({
   collapsed,
@@ -14,6 +16,7 @@ export function Sidebar({
   onToggle: () => void;
 }) {
   const pathname = usePathname();
+  const { user, openProfile } = useUser();
 
   return (
     <aside
@@ -23,13 +26,10 @@ export function Sidebar({
       )}
     >
       <div className={cn("flex shrink-0 items-center gap-2.5", collapsed ? "flex-col px-3 py-4" : "h-20 px-5")}>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground shadow-[0_6px_16px_-4px_hsl(var(--shadow-color)/0.4)]">
-          <GraduationCap className="size-5" />
-        </div>
-        {!collapsed && (
-          <span className="truncate text-[15px] font-semibold tracking-tight">
-            L2E <span className="text-primary">CRM</span>
-          </span>
+        {collapsed ? (
+          <Image width={33} height={49} src="/logo-icon.svg" alt="Lead2Enrolment CRM" className="h-8 w-auto shrink-0" />
+        ) : (
+          <Image width={106} height={48} src="/logo.svg" alt="Lead2Enrolment CRM" className="h-8 w-auto shrink-0" />
         )}
         <button
           onClick={onToggle}
@@ -91,23 +91,22 @@ export function Sidebar({
 
       <div className="border-t border-border p-3">
         <button
+          type="button"
+          onClick={openProfile}
+          title={collapsed ? "My Profile" : undefined}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-2xl px-2.5 py-2 text-left transition-colors hover:bg-surface-hover",
             collapsed && "justify-center"
           )}
         >
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            SR
+            {initialsFor(user.name)}
           </span>
           {!collapsed && (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-foreground">
-                  Sadman Rahman
-                </span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  Admissions Lead
-                </span>
+                <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
+                <span className="block truncate text-xs text-muted-foreground">{user.role}</span>
               </span>
               <Settings className="size-4 shrink-0 text-muted-foreground" />
             </>

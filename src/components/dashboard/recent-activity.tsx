@@ -116,7 +116,7 @@ export function RecentActivity() {
   };
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex h-full min-w-0 flex-col">
       <CardHeader
         icon={Activity}
         iconBg="bg-primary-soft"
@@ -133,7 +133,7 @@ export function RecentActivity() {
               type="button"
               onClick={handleDownloadCSV}
               title="Download Activity CSV"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95 shadow-xs whitespace-nowrap"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95 shadow-xs whitespace-nowrap"
             >
               <Download className="size-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">Download CSV</span>
@@ -260,7 +260,7 @@ export function RecentActivity() {
                     {/* Activity Type Badge */}
                     <td className="py-3 pl-6 pr-3 align-middle whitespace-nowrap">
                       {isStatusChange ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200/60 bg-indigo-50/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary">
                           <ArrowRightLeft className="size-3 shrink-0" />
                           <span>Status Change</span>
                         </span>

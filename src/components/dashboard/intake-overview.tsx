@@ -43,10 +43,10 @@ const stages: StageConfig[] = [
   {
     key: "submitted",
     name: "Submitted",
-    color: "#6366f1",
+    color: "var(--primary)",
     fill: "url(#intake-submitted)",
     icon: Send,
-    bgSoft: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
+    bgSoft: "bg-primary-soft text-primary",
   },
   {
     key: "offer",
@@ -67,10 +67,10 @@ const stages: StageConfig[] = [
   {
     key: "enrolled",
     name: "Enrolled",
-    color: "#10b981",
+    color: "var(--success)",
     fill: "url(#intake-enrolled)",
     icon: CheckCircle2,
-    bgSoft: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    bgSoft: "bg-success-soft text-success",
   },
 ];
 
@@ -145,10 +145,10 @@ export function IntakeOverview() {
   const funnelData = useMemo(() => {
     const d = activeBreakdown.data;
     return [
-      { stage: "Submitted", count: d.submitted, pct: 100, color: "#6366f1" },
+      { stage: "Submitted", count: d.submitted, pct: 100, color: "var(--primary)" },
       { stage: "Offer Received", count: d.offer, pct: Math.round((d.offer / d.submitted) * 100), color: "#f59e0b" },
       { stage: "Visa Filed", count: d.visaFiled, pct: Math.round((d.visaFiled / d.submitted) * 100), color: "#0ea5e9" },
-      { stage: "Enrolled", count: d.enrolled, pct: Math.round((d.enrolled / d.submitted) * 100), color: "#10b981" },
+      { stage: "Enrolled", count: d.enrolled, pct: Math.round((d.enrolled / d.submitted) * 100), color: "var(--success)" },
     ];
   }, [activeBreakdown]);
 
@@ -297,8 +297,8 @@ export function IntakeOverview() {
                 <AreaChart data={funnelData} margin={{ top: 15, right: 24, left: 10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="funnelFlowGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="var(--success)" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="4 8" />
@@ -334,7 +334,7 @@ export function IntakeOverview() {
                     type="monotone"
                     dataKey="count"
                     name="Applicants"
-                    stroke="#6366f1"
+                    stroke="var(--primary)"
                     strokeWidth={2.5}
                     fill="url(#funnelFlowGradient)"
                     activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}

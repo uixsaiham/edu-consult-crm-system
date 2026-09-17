@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ClipboardList,
@@ -32,8 +33,17 @@ function paletteFor(name: string) {
 const stages: ApplicationRow["stage"][] = ["New", "Submitted", "Offer Received", "Visa Filed", "Enrolled", "Rejected"];
 
 export default function ApplicationsPage() {
+  return <Suspense fallback={<p className="p-6 text-muted-foreground">Loading applications…</p>}><ApplicationsFromDashboard /></Suspense>;
+}
+
+function ApplicationsFromDashboard() {
+  const params = useSearchParams();
+  return <ApplicationsList key={params.toString()} initialSearch={params.get("search") || ""} />;
+}
+
+function ApplicationsList({ initialSearch }: { initialSearch: string }) {
   const applications = getApplications();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [stageFilter, setStageFilter] = useState<string>("");
 
   const filtered = useMemo(() => {
@@ -58,14 +68,10 @@ export default function ApplicationsPage() {
   const offers = applications.filter((a) => a.stage === "Offer Received").length;
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
-            <Sparkles className="size-3" />
-            Applications
-          </span>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Manage Applications
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -75,7 +81,7 @@ export default function ApplicationsPage() {
 
         <Link
           href="/applications/new"
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
         >
           <Plus className="size-4" />
           New Application
@@ -135,7 +141,7 @@ export default function ApplicationsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search applicant, course, ID..."
-                  className="h-9 w-56 rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+                  className="h-10 w-56 rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
                 />
                 {search && (
                   <button

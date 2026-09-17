@@ -59,7 +59,7 @@ export function FilterBar() {
             aria-pressed={isActive}
             onClick={() => toggle(filter.id)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              "flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
               isActive
                 ? "border-primary bg-primary-soft text-primary"
                 : "border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground"

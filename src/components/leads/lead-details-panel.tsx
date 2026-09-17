@@ -44,14 +44,14 @@ export function LeadDetailsPanel({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
           >
             Close
           </button>
           <button
             type="button"
             onClick={() => onAssign(lead)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
           >
             <UserCog className="size-3.5" />
             {lead.counsellor ? "Reassign" : "Assign"} Counsellor

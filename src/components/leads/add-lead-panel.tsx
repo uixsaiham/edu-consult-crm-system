@@ -79,7 +79,7 @@ export function AddLeadPanel({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
           >
             Cancel
           </button>
@@ -87,7 +87,7 @@ export function AddLeadPanel({
             type="button"
             onClick={handleSubmit}
             disabled={!isValid}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Add Lead
           </button>

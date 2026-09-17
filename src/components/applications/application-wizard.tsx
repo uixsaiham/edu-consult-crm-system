@@ -304,7 +304,7 @@ export function ApplicationWizard() {
                     type="button"
                     onClick={goPrev}
                     disabled={stepIndex === 0}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ArrowLeft className="size-3.5" />
                     Previous
@@ -315,7 +315,7 @@ export function ApplicationWizard() {
                       <button
                         type="button"
                         onClick={goNext}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-4 py-2 text-xs font-semibold text-warning transition-all hover:brightness-95"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-4 py-2 text-xs font-semibold text-warning transition-all hover:brightness-95"
                       >
                         <SkipForward className="size-3.5" />
                         Skip &amp; Continue
@@ -327,7 +327,7 @@ export function ApplicationWizard() {
                         type="button"
                         onClick={handleSubmit}
                         disabled={!isValid(6)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Submit Application
                       </button>
@@ -336,7 +336,7 @@ export function ApplicationWizard() {
                         type="button"
                         onClick={goNext}
                         disabled={!currentStep.optional && !isValid(stepIndex)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Save &amp; Continue
                       </button>

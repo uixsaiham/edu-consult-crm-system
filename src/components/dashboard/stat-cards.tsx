@@ -95,7 +95,7 @@ interface CardTheme {
 const cardThemes: Record<string, CardTheme> = {
   leads: {
     icon: Users2,
-    stroke: "#4f46e5",
+    stroke: "var(--primary)",
     fillId: "sparkLinearLeads",
     contextLabel: "Qualified Rate",
     contextValue: "68%",
@@ -103,7 +103,7 @@ const cardThemes: Record<string, CardTheme> = {
   },
   "direct-applications": {
     icon: UserCheck,
-    stroke: "#4f46e5",
+    stroke: "var(--primary)",
     fillId: "sparkLinearDirect",
     contextLabel: "Self-Submitted",
     contextValue: "56%",
@@ -119,7 +119,7 @@ const cardThemes: Record<string, CardTheme> = {
   },
   "cas-received": {
     icon: CheckCircle2,
-    stroke: "#4f46e5",
+    stroke: "var(--primary)",
     fillId: "sparkLinearCas",
     contextLabel: "Direct vs B2B",
     contextValue: "33%",
@@ -140,7 +140,7 @@ function MiniChartTooltip({ active, payload, label, strokeColor }: CustomTooltip
   if (!active || !payload || !payload.length) return null;
   return (
     <div className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs shadow-md card-shadow">
-      <span className="size-1.5 rounded-full" style={{ backgroundColor: strokeColor || "#4f46e5" }} />
+      <span className="size-1.5 rounded-full" style={{ backgroundColor: strokeColor || "var(--primary)" }} />
       <span className="text-[10px] font-medium text-muted-foreground">{label}:</span>
       <span className="font-bold text-foreground tabular-nums">{payload[0].value}</span>
     </div>
@@ -181,7 +181,7 @@ export function StatCards() {
   return (
     <section
       aria-label="Key performance indicators"
-      className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4"
     >
       {/* Cards 1 to 3 */}
       {stats.slice(0, 3).map((stat) => {
@@ -499,8 +499,8 @@ export function StatCards() {
                       <AreaChart data={sparkData} margin={{ top: 8, right: 4, bottom: 0, left: 4 }}>
                         <defs>
                           <linearGradient id="sparkLinearCasCarouselExp" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.35} />
-                            <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.0} />
+                            <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                            <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.0} />
                           </linearGradient>
                         </defs>
                         <XAxis
@@ -510,13 +510,13 @@ export function StatCards() {
                           tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                         />
                         <Tooltip
-                          content={<MiniChartTooltip strokeColor="#4f46e5" />}
-                          cursor={{ stroke: "#4f46e5", strokeWidth: 1, strokeDasharray: "2 2" }}
+                          content={<MiniChartTooltip strokeColor="var(--primary)" />}
+                          cursor={{ stroke: "var(--primary)", strokeWidth: 1, strokeDasharray: "2 2" }}
                         />
                         <Area
                           type="monotone"
                           dataKey="value"
-                          stroke="#4f46e5"
+                          stroke="var(--primary)"
                           strokeWidth={2.2}
                           fill="url(#sparkLinearCasCarouselExp)"
                           activeDot={{ r: 4, stroke: "var(--surface)", strokeWidth: 2 }}

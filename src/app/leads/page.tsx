@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -55,9 +56,18 @@ function formatDate(iso: string) {
 const PAGE_SIZE = 8;
 
 export default function LeadsPage() {
+  return <Suspense fallback={<p className="p-6 text-muted-foreground">Loading leads…</p>}><LeadsFromDashboard /></Suspense>;
+}
+
+function LeadsFromDashboard() {
+  const params = useSearchParams();
+  return <LeadsList key={params.toString()} initialSearch={params.get("search") || ""} />;
+}
+
+function LeadsList({ initialSearch }: { initialSearch: string }) {
   const [leads, setLeads] = useState<LeadRow[]>(getLeads);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [countryFilter, setCountryFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [counsellorFilter, setCounsellorFilter] = useState("");
@@ -66,9 +76,11 @@ export default function LeadsPage() {
 
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [rangeAnchor, setRangeAnchor] = useState<number | null>(null);
+  const shiftHeldRef = useRef(false);
 
   const [addOpen, setAddOpen] = useState(false);
-  const [assigning, setAssigning] = useState<LeadRow | null>(null);
+  const [assigning, setAssigning] = useState<LeadRow[] | null>(null);
   const [viewing, setViewing] = useState<LeadRow | null>(null);
 
   const hasFilters = !!(search || countryFilter || branchFilter || counsellorFilter || statusFilter || unassignedOnly);
@@ -135,14 +147,49 @@ export default function LeadsPage() {
     });
   }
 
+  function handleRowMouseDown(e: MouseEvent<HTMLInputElement>) {
+    shiftHeldRef.current = e.shiftKey;
+    // Block the browser's native shift-click text-selection behavior; the
+    // checkbox's own toggle is driven by the click/change events below,
+    // which are unaffected by preventDefault on mousedown.
+    if (e.shiftKey) e.preventDefault();
+  }
+
+  function handleRowCheckboxChange(id: string, index: number) {
+    const shiftKey = shiftHeldRef.current;
+    shiftHeldRef.current = false;
+
+    if (shiftKey && rangeAnchor !== null) {
+      const [start, end] = [rangeAnchor, index].sort((a, b) => a - b);
+      const rangeIds = pageItems.slice(start, end + 1).map((l) => l.id);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        rangeIds.forEach((rid) => next.add(rid));
+        return next;
+      });
+    } else {
+      toggleSelect(id);
+    }
+
+    setRangeAnchor(index);
+  }
+
   function handleDeleteSelected() {
     setLeads((prev) => prev.filter((l) => !selected.has(l.id)));
     setSelected(new Set());
   }
 
-  function handleAssign(id: string, branch: string, counsellor: string) {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, branch, counsellor } : l)));
+  function handleAssign(ids: string[], branch: string, counsellor: string) {
+    const idSet = new Set(ids);
+    setLeads((prev) => prev.map((l) => (idSet.has(l.id) ? { ...l, branch, counsellor } : l)));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      idSet.forEach((id) => next.delete(id));
+      return next;
+    });
   }
+
+  const selectedLeads = useMemo(() => leads.filter((l) => selected.has(l.id)), [leads, selected]);
 
   function handleAdd(lead: LeadRow) {
     setLeads((prev) => [lead, ...prev]);
@@ -154,14 +201,10 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
-            <Sparkles className="size-3" />
-            Leads
-          </span>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">All Leads</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">All Leads</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Track, filter, and assign every incoming lead to a counsellor.
           </p>
@@ -170,7 +213,7 @@ export default function LeadsPage() {
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
         >
           <Plus className="size-4" />
           Add Lead
@@ -227,7 +270,7 @@ export default function LeadsPage() {
               setPage(1);
             }}
             placeholder="Search name, email, phone, ID..."
-            className="h-9 w-56 rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+            className="h-10 w-56 rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
           {search && (
             <button
@@ -320,7 +363,7 @@ export default function LeadsPage() {
           }}
           aria-pressed={unassignedOnly}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all",
+            "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all",
             unassignedOnly
               ? "border-danger/30 bg-danger-soft text-danger"
               : "border-border bg-surface text-muted-foreground hover:text-foreground"
@@ -334,7 +377,7 @@ export default function LeadsPage() {
           <button
             type="button"
             onClick={resetFilters}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
             <RotateCcw className="size-3.5" />
             Reset
@@ -349,14 +392,43 @@ export default function LeadsPage() {
           subtitle={`${filtered.length.toLocaleString()} lead${filtered.length === 1 ? "" : "s"} match your filters`}
         />
 
-        {selected.size > 0 && (
-          <div className="mx-6 mt-4 flex items-center justify-between rounded-xl bg-primary-soft px-4 py-2.5 text-xs">
-            <span className="font-semibold text-primary">{selected.size} selected</span>
+        {selectedLeads.length > 0 && (
+          <div className="mx-6 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/15 bg-primary-soft px-4 py-3">
             <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {selectedLeads.slice(0, 4).map((l) => (
+                  <span
+                    key={l.id}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-surface bg-primary/15 text-[10px] font-bold text-primary"
+                    title={l.name}
+                  >
+                    {l.initials}
+                  </span>
+                ))}
+                {selectedLeads.length > 4 && (
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-surface bg-primary text-[10px] font-bold text-primary-foreground">
+                    +{selectedLeads.length - 4}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs font-semibold text-primary">
+                {selectedLeads.length} lead{selectedLeads.length === 1 ? "" : "s"} selected
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAssigning(selectedLeads)}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+              >
+                <UserCog className="size-3.5" />
+                Assign to Counsellor
+              </button>
               <button
                 type="button"
                 onClick={handleDeleteSelected}
-                className="inline-flex items-center gap-1.5 font-semibold text-danger hover:underline"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-danger/30 bg-surface px-3.5 text-xs font-semibold text-danger transition-all hover:bg-danger-soft"
               >
                 <Trash2 className="size-3.5" />
                 Delete
@@ -364,9 +436,10 @@ export default function LeadsPage() {
               <button
                 type="button"
                 onClick={() => setSelected(new Set())}
-                className="font-semibold text-muted-foreground hover:text-foreground"
+                aria-label="Clear selection"
+                className="flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
               >
-                Clear
+                <X className="size-3.5" />
               </button>
             </div>
           </div>
@@ -415,7 +488,7 @@ export default function LeadsPage() {
                   </td>
                 </tr>
               ) : (
-                pageItems.map((lead) => {
+                pageItems.map((lead, index) => {
                   const status = leadStatusStyles[lead.status];
                   const checked = selected.has(lead.id);
                   return (
@@ -424,9 +497,11 @@ export default function LeadsPage() {
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => toggleSelect(lead.id)}
+                          onMouseDown={handleRowMouseDown}
+                          onChange={() => handleRowCheckboxChange(lead.id, index)}
                           className="size-3.5 rounded border-border-strong accent-primary"
                           aria-label={`Select ${lead.name}`}
+                          title="Shift-click to select a range"
                         />
                       </td>
                       <td className="px-3 py-3 align-middle">
@@ -441,7 +516,7 @@ export default function LeadsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setAssigning(lead)}
+                            onClick={() => setAssigning([lead])}
                             aria-label="Assign lead"
                             className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary-soft hover:text-primary"
                           >
@@ -500,7 +575,7 @@ export default function LeadsPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => setAssigning(lead)}
+                            onClick={() => setAssigning([lead])}
                             className="rounded-full bg-danger-soft px-2.5 py-1 text-[11px] font-semibold text-danger transition-all hover:brightness-95"
                           >
                             Assign To Counselor
@@ -566,8 +641,8 @@ export default function LeadsPage() {
 
       <AddLeadPanel open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAdd} />
       <AssignLeadPanel
-        key={assigning?.id ?? "none"}
-        lead={assigning}
+        key={assigning?.map((l) => l.id).join("|") ?? "none"}
+        leads={assigning}
         onClose={() => setAssigning(null)}
         onAssign={handleAssign}
       />
@@ -576,7 +651,7 @@ export default function LeadsPage() {
         onClose={() => setViewing(null)}
         onAssign={(lead) => {
           setViewing(null);
-          setAssigning(lead);
+          setAssigning([lead]);
         }}
       />
     </div>

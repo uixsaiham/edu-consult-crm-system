@@ -18,13 +18,13 @@ export function ApplicationTrendChart() {
   const data = getApplicationTrend();
 
   return (
-    <Card>
+    <Card className="flex min-h-[400px] min-w-0 flex-col">
       <CardHeader
         icon={TrendingUp}
         title="Applications Trend"
         subtitle="Direct vs. agent-referred applications, last 6 months"
       />
-      <div className="h-72 px-2 pb-4 pt-4 sm:px-4">
+      <div className="h-72 min-w-0 shrink-0 px-2 pb-4 pt-4 sm:px-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
             <defs>
@@ -74,7 +74,7 @@ export function ApplicationTrendChart() {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex items-center gap-4 border-t border-border px-6 py-4">
+      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border px-6 py-4">
         <Legend color="var(--chart-1)" label="Direct Applications" />
         <Legend color="var(--chart-3)" label="Agent Applications" />
       </div>

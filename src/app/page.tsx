@@ -1,4 +1,5 @@
-import { Download, Handshake, Sparkles, UserCog } from "lucide-react";
+import { Download, Handshake, UserCog } from "lucide-react";
+import { OperationsOverview } from "@/components/dashboard/operations-overview";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { ApplicationTrendChart } from "@/components/dashboard/application-trend-chart";
 import { LeadFunnel } from "@/components/dashboard/lead-funnel";
@@ -14,15 +15,11 @@ export default function DashboardPage() {
   const agents = getAgentPerformance();
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-6">
       {/* Top Overview Banner inspired by Blomstra / Clinexa */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold text-primary">
-              <Sparkles className="size-3" />
-              Admissions Live
-            </span>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="relative flex size-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -42,7 +39,7 @@ export default function DashboardPage() {
         <div className="flex shrink-0 items-center gap-2.5">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground card-shadow transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground card-shadow transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95"
           >
             <Download className="size-3.5 text-muted-foreground" />
             Export Report
@@ -53,22 +50,23 @@ export default function DashboardPage() {
       {/* Hero Stat Cards with Interactive Status Carousel & Sparklines */}
       <StatCards />
 
-      {/* Trend & Funnel Row */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <ApplicationTrendChart />
-        </div>
+      {/* Keep cards within each dashboard row stretched to equal height. */}
+      <OperationsOverview />
+
+      {/* Trend and funnel share the row in a 60/40 ratio. */}
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <ApplicationTrendChart />
         <LeadFunnel />
       </div>
 
       {/* Intake Pipeline & Branch Performance Row */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2">
         <IntakeOverview />
         <OfficePerformanceChart />
       </div>
 
       {/* Performance Tables Row */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2">
         <PerformanceTable
           title="Counsellor Performance"
           subtitle="Applications handled this year, by counsellor"
@@ -88,7 +86,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activities & Top 10 Lead Sources Row */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-12">
         <div className="xl:col-span-7 2xl:col-span-7">
           <RecentActivity />
         </div>

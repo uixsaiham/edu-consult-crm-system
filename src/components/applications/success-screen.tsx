@@ -34,7 +34,7 @@ export function SuccessScreen({
       <div className="mt-2 flex flex-col gap-2.5 sm:flex-row">
         <Link
           href="/applications"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover active:scale-95"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover active:scale-95"
         >
           <ListChecks className="size-4" />
           View Applications
@@ -42,7 +42,7 @@ export function SuccessScreen({
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-surface-hover active:scale-95"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-surface-hover active:scale-95"
         >
           <FilePlus2 className="size-4" />
           Add Another Application

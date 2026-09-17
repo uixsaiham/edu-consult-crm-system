@@ -270,6 +270,19 @@ export const fundingSources = [
 
 // --- Applications list (for /applications) -----------------------------
 
+export const operationsSnapshotDate = "2026-09-17";
+
+export interface ApplicationDeadline {
+  type: "Application" | "Deposit" | "CAS" | "Visa";
+  dueDate: string;
+}
+
+export interface ApplicationBlocker {
+  category: "Documents" | "Payment" | "University response";
+  reason: string;
+  since: string;
+}
+
 export interface ApplicationRow {
   id: string;
   applicant: string;
@@ -281,6 +294,8 @@ export interface ApplicationRow {
   intake: string;
   stage: "New" | "Submitted" | "Offer Received" | "Visa Filed" | "Enrolled" | "Rejected";
   updatedAt: string;
+  deadlines?: ApplicationDeadline[];
+  blockers?: ApplicationBlocker[];
 }
 
 export function getApplications(): ApplicationRow[] {
@@ -308,6 +323,8 @@ export function getApplications(): ApplicationRow[] {
       intake: "January 2027",
       stage: "Visa Filed",
       updatedAt: "2026-09-11",
+      deadlines: [{ type: "Visa", dueDate: "2026-09-20" }],
+      blockers: [{ category: "Documents", reason: "Updated bank statement required", since: "2026-09-11" }],
     },
     {
       id: "APP-2026-0483",
@@ -320,6 +337,8 @@ export function getApplications(): ApplicationRow[] {
       intake: "July 2027",
       stage: "Submitted",
       updatedAt: "2026-09-10",
+      deadlines: [{ type: "Application", dueDate: "2026-10-05" }],
+      blockers: [{ category: "University response", reason: "Awaiting admissions decision", since: "2026-09-10" }],
     },
     {
       id: "APP-2026-0484",
@@ -332,6 +351,8 @@ export function getApplications(): ApplicationRow[] {
       intake: "September 2026",
       stage: "Offer Received",
       updatedAt: "2026-09-09",
+      deadlines: [{ type: "Deposit", dueDate: "2026-09-15" }, { type: "CAS", dueDate: "2026-09-24" }],
+      blockers: [{ category: "Payment", reason: "Tuition deposit outstanding", since: "2026-09-09" }],
     },
     {
       id: "APP-2026-0485",
@@ -344,6 +365,8 @@ export function getApplications(): ApplicationRow[] {
       intake: "January 2027",
       stage: "New",
       updatedAt: "2026-09-08",
+      deadlines: [{ type: "Application", dueDate: "2026-09-17" }],
+      blockers: [{ category: "Documents", reason: "Passport copy and transcript missing", since: "2026-09-08" }],
     },
     {
       id: "APP-2026-0486",
@@ -365,7 +388,7 @@ export const applicationStageStyles: Record<
   { dot: string; text: string; bg: string }
 > = {
   New: { dot: "bg-slate-400", text: "text-slate-600 dark:text-slate-300", bg: "bg-slate-100 dark:bg-slate-500/10" },
-  Submitted: { dot: "bg-indigo-500", text: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
+  Submitted: { dot: "bg-primary", text: "text-primary", bg: "bg-primary-soft" },
   "Offer Received": { dot: "bg-amber-500", text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
   "Visa Filed": { dot: "bg-sky-500", text: "text-sky-600 dark:text-sky-400", bg: "bg-sky-50 dark:bg-sky-500/10" },
   Enrolled: { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },

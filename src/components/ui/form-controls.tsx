@@ -109,7 +109,7 @@ export function PillGroup<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap transition-all",
+              "inline-flex min-h-10 items-center justify-center rounded-full px-4 text-xs font-semibold whitespace-nowrap transition-all",
               active ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             )}
           >

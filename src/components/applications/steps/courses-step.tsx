@@ -129,7 +129,7 @@ export function CoursesStep({
               type="button"
               onClick={handleAdd}
               disabled={!canAdd}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Plus className="size-4" />
               Add Course

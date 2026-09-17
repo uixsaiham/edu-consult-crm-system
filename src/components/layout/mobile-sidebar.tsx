@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, X } from "lucide-react";
+import { X } from "lucide-react";
 import { navSections } from "./nav-items";
-import { cn } from "@/lib/utils";
+import { useUser } from "./user-context";
+import { cn, initialsFor } from "@/lib/utils";
 
 export function MobileSidebar({
   open,
@@ -14,6 +16,7 @@ export function MobileSidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const { user, openProfile } = useUser();
 
   if (!open) return null;
 
@@ -25,12 +28,7 @@ export function MobileSidebar({
       />
       <aside className="absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col bg-surface shadow-xl">
         <div className="flex h-20 shrink-0 items-center gap-2.5 px-5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-primary-foreground">
-            <GraduationCap className="size-5" />
-          </div>
-          <span className="text-[15px] font-semibold tracking-tight">
-            L2E <span className="text-primary">CRM</span>
-          </span>
+          <Image width={106} height={48} src="/logo.svg" alt="Lead2Enrolment CRM" className="h-8 w-auto shrink-0" />
           <button
             onClick={onClose}
             className="ml-auto flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover"
@@ -75,19 +73,22 @@ export function MobileSidebar({
           </div>
         </nav>
         <div className="border-t border-border p-3">
-          <div className="flex items-center gap-2.5 rounded-2xl px-2.5 py-2">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              openProfile();
+            }}
+            className="flex w-full items-center gap-2.5 rounded-2xl px-2.5 py-2 text-left transition-colors hover:bg-surface-hover"
+          >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-              SR
+              {initialsFor(user.name)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-foreground">
-                Sadman Rahman
-              </span>
-              <span className="block truncate text-xs text-muted-foreground">
-                Admissions Lead
-              </span>
+              <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
+              <span className="block truncate text-xs text-muted-foreground">{user.role}</span>
             </span>
-          </div>
+          </button>
         </div>
       </aside>
     </div>
