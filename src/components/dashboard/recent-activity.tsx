@@ -95,7 +95,7 @@ export function RecentActivity() {
   const handleDownloadCSV = () => {
     const headers = ["Activity", "Lead ID", "From Status", "To Status", "Details", "Counsellor", "Time"];
     const rows = filteredItems.map((item) => [
-      `"${item.type === "status-change" ? "Status Change" : "Note Added"}"`,
+      `"${item.type === "status-change" ? "Lead Status Change" : "Note Create"}"`,
       `"${item.targetId}"`,
       `"${item.fromStatus || ""}"`,
       `"${item.toStatus || ""}"`,
@@ -116,7 +116,7 @@ export function RecentActivity() {
   };
 
   return (
-    <Card className="flex h-full min-w-0 flex-col">
+    <Card className="flex flex-col h-full">
       <CardHeader
         icon={Activity}
         iconBg="bg-primary-soft"
@@ -133,7 +133,7 @@ export function RecentActivity() {
               type="button"
               onClick={handleDownloadCSV}
               title="Download Activity CSV"
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95 shadow-xs whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95 shadow-xs whitespace-nowrap"
             >
               <Download className="size-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">Download CSV</span>
@@ -142,7 +142,7 @@ export function RecentActivity() {
         }
       />
 
-      {/* Filter Tabs & Search Header */}
+      {/* Filter & Search Bar Header */}
       <div className="flex flex-col gap-2.5 border-b border-border/70 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5">
@@ -217,8 +217,8 @@ export function RecentActivity() {
       </div>
 
       {/* Polished Table Structure with Sticky Header & Smooth Scroll */}
-      <div className="overflow-x-auto max-h-[385px] overflow-y-auto">
-        <table className="w-full min-w-[620px] border-collapse text-left text-xs">
+      <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
+        <table className="w-full min-w-[640px] border-collapse text-left text-xs">
           <thead className="sticky top-0 z-10 bg-surface/95 backdrop-blur-xs border-b border-border/80 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="py-2.5 pl-6 pr-3 font-semibold">Activity</th>
@@ -260,27 +260,27 @@ export function RecentActivity() {
                     {/* Activity Type Badge */}
                     <td className="py-3 pl-6 pr-3 align-middle whitespace-nowrap">
                       {isStatusChange ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary-soft px-2.5 py-1 text-[11px] font-semibold text-primary">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200/60 bg-indigo-50/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
                           <ArrowRightLeft className="size-3 shrink-0" />
-                          <span>Status Change</span>
+                          <span>Lead Status Change</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
                           <FileText className="size-3 shrink-0" />
-                          <span>Note Added</span>
+                          <span>Note Create</span>
                         </span>
                       )}
                     </td>
 
-                    {/* Target Application / Lead ID */}
+                    {/* Target Application ID */}
                     <td className="px-3 py-3 align-middle whitespace-nowrap">
-                      <span className="inline-flex items-center font-mono text-[11px] font-semibold text-primary bg-primary-soft/60 px-2.5 py-0.5 rounded-md border border-primary/20">
+                      <span className="inline-flex items-center font-mono text-[11px] font-semibold text-primary bg-primary-soft/60 px-2.5 py-1 rounded-md border border-primary/20">
                         {item.targetId}
                       </span>
                     </td>
 
-                    {/* Update Details / Context - Clean, unclipped content */}
-                    <td className="px-3 py-3 align-middle min-w-[220px]">
+                    {/* Update Details */}
+                    <td className="px-3 py-3 align-middle min-w-[240px]">
                       {isStatusChange && item.fromStatus && item.toStatus ? (
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -320,13 +320,13 @@ export function RecentActivity() {
                             {cleanNoteText(item.description)}
                           </p>
                           <span className="text-[10px] text-muted-foreground">
-                            Counsellor verification note
+                            Counsellor documented verification note
                           </span>
                         </div>
                       )}
                     </td>
 
-                    {/* Counsellor / Actor Avatar + Name */}
+                    {/* Counsellor / Actor */}
                     <td className="px-3 py-3 align-middle whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span
@@ -358,11 +358,10 @@ export function RecentActivity() {
         </table>
       </div>
 
-      {/* Table Footer Summary */}
+      {/* Table Footer */}
       <div className="flex items-center justify-between border-t border-border/70 px-6 py-2.5 text-xs text-muted-foreground bg-surface-muted/20">
         <span>
-          Showing <strong className="font-semibold text-foreground">{filteredItems.length}</strong> of{" "}
-          <strong className="font-semibold text-foreground">{activities.length}</strong> audit records
+          Total updates: <strong className="font-semibold text-foreground">{filteredItems.length}</strong> logged
         </span>
         <span className="text-[11px] text-muted-foreground">
           Real-time CRM Audit Trail
