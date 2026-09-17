@@ -322,141 +322,104 @@ export default function CountriesPage() {
             </div>
           ) : (
             filtered.map((country) => (
-              <Card
+              <div
                 key={country.id}
                 className={cn(
-                  "rounded-2xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-md",
-                  !country.isActive && "opacity-60 bg-muted/20"
+                  "group relative rounded-2xl border border-border/60 bg-card shadow-xs transition-all duration-200 hover:shadow-md hover:border-border overflow-hidden",
+                  !country.isActive && "opacity-55"
                 )}
               >
-                {/* Top Row: Flag on left, Action controls on right */}
-                <div className="flex items-center justify-between">
-                  {/* Flag Badge */}
-                  <div className="flex h-7 w-11 items-center justify-center overflow-hidden rounded-md border border-slate-200/80 bg-slate-100/60 text-2xl shadow-2xs select-none dark:border-slate-800 dark:bg-slate-900/60">
-                    <span className="leading-none">{country.flag}</span>
+                {/* Card Body */}
+                <div className="p-5">
+                  {/* Header: Flag + Actions */}
+                  <div className="flex items-center justify-between">
+                    {/* Circular Flag Badge */}
+                    <div className="flex size-12 items-center justify-center rounded-full bg-slate-100 text-[26px] select-none shadow-xs dark:bg-slate-800/80">
+                      <span className="leading-none">{country.flag}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      {/* View */}
+                      <button
+                        type="button"
+                        onClick={() => setViewingCountry(country)}
+                        title="View Details"
+                        className="flex size-8 items-center justify-center rounded-full bg-amber-400 text-white shadow-xs transition-all hover:bg-amber-500 hover:shadow-md active:scale-95 cursor-pointer"
+                      >
+                        <Eye className="size-3.5" />
+                      </button>
+
+                      {/* Edit */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingCountry(country)}
+                        title="Edit Country"
+                        className="flex size-8 items-center justify-center rounded-full bg-violet-500 text-white shadow-xs transition-all hover:bg-violet-600 hover:shadow-md active:scale-95 cursor-pointer"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
+
+                      {/* Active Toggle Pill */}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={country.isActive}
+                        onClick={() => handleToggleActive(country.id)}
+                        title={country.isActive ? "Active — click to deactivate" : "Inactive — click to activate"}
+                        className={cn(
+                          "relative flex h-8 w-[72px] cursor-pointer items-center rounded-full px-2 shadow-xs transition-all duration-300 focus:outline-none select-none",
+                          country.isActive
+                            ? "bg-gradient-to-r from-blue-500 to-cyan-400"
+                            : "bg-slate-200 dark:bg-slate-700"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "text-[10px] font-bold tracking-wide transition-all duration-300",
+                            country.isActive
+                              ? "text-white mr-auto"
+                              : "text-slate-500 dark:text-slate-300 ml-auto"
+                          )}
+                        >
+                          {country.isActive ? "Active" : "Off"}
+                        </span>
+                        <span
+                          className={cn(
+                            "absolute size-5 rounded-full bg-white shadow-sm transition-all duration-300",
+                            country.isActive ? "right-1.5" : "left-1.5"
+                          )}
+                        />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Action Group: View, Edit, Active Switch */}
-                  <div className="flex items-center gap-1.5">
-                    {/* View Button */}
-                    <button
-                      type="button"
-                      onClick={() => setViewingCountry(country)}
-                      title="View Country Details"
-                      className="flex size-7 items-center justify-center rounded-md bg-[#e5a035] text-white shadow-2xs transition-all hover:bg-[#d6932b] active:scale-95 cursor-pointer"
-                    >
-                      <Eye className="size-3.5" />
-                    </button>
+                  {/* Country Name */}
+                  <h3 className="mt-4 text-[15px] font-bold tracking-tight text-foreground">
+                    {country.name}
+                  </h3>
 
-                    {/* Edit Button */}
-                    <button
-                      type="button"
-                      onClick={() => setEditingCountry(country)}
-                      title="Edit Country Details"
-                      className="flex size-7 items-center justify-center rounded-md bg-[#7c5cdb] text-white shadow-2xs transition-all hover:bg-[#6b47cf] active:scale-95 cursor-pointer"
-                    >
-                      <Pencil className="size-3.5" />
-                    </button>
+                  {/* Thin Divider */}
+                  <div className="mt-3 h-px w-full bg-border/60" />
 
-                    {/* Toggle Switch */}
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={country.isActive}
-                      onClick={() => handleToggleActive(country.id)}
-                      title={
-                        country.isActive
-                          ? "Country is Active (click to disable)"
-                          : "Country is Inactive (click to enable)"
-                      }
-                      className={cn(
-                        "relative flex h-7 w-14 items-center rounded-full px-1.5 shadow-2xs transition-colors duration-200 cursor-pointer focus:outline-hidden select-none",
-                        country.isActive
-                          ? "bg-[#3867d6]"
-                          : "bg-slate-300 dark:bg-slate-700"
-                      )}
-                    >
-                      {country.isActive ? (
-                        <>
-                          <span className="text-[10px] font-bold tracking-wider text-white pl-0.5">
-                            On
-                          </span>
-                          <span className="ml-auto size-4 rounded-full bg-white shadow-xs" />
-                        </>
-                      ) : (
-                        <>
-                          <span className="size-4 rounded-full bg-white shadow-xs" />
-                          <span className="ml-auto text-[10px] font-bold tracking-wider text-slate-600 dark:text-slate-300 pr-0.5">
-                            Off
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Country Name */}
-                <h3 className="mt-3.5 text-base font-bold text-foreground tracking-tight">
-                  {country.name}
-                </h3>
-
-                {/* 6 Metrics Rows */}
-                <div className="mt-3 divide-y divide-border/60 text-xs">
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Total Universities
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.partnerUniversities}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Direct Applications
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.directApplications}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Agent Applications
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.agentApplications}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Lead In Progress
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.leadInProgress}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Completed Leads
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.completedLeads}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <span className="font-normal text-slate-600 dark:text-slate-400">
-                      Rejected Leads
-                    </span>
-                    <span className="font-bold text-foreground tabular-nums">
-                      {country.rejectedLeads}
-                    </span>
+                  {/* 6 Metric Rows */}
+                  <div className="divide-y divide-border/40 text-[13px]">
+                    {[
+                      { label: "Total Universities", value: country.partnerUniversities },
+                      { label: "Direct Applications", value: country.directApplications },
+                      { label: "Agent Applications", value: country.agentApplications },
+                      { label: "Lead In Progress", value: country.leadInProgress },
+                      { label: "Completed Leads", value: country.completedLeads },
+                      { label: "Rejected Leads", value: country.rejectedLeads },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center justify-between py-[9px]">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-bold tabular-nums text-foreground">{value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </Card>
+              </div>
             ))
           )}
         </div>
