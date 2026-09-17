@@ -24,6 +24,7 @@ export function Card({
 export function CardHeader({
   title,
   subtitle,
+  description,
   icon: Icon,
   iconBg = "bg-primary-soft",
   iconColor = "text-primary",
@@ -31,11 +32,13 @@ export function CardHeader({
 }: {
   title: string;
   subtitle?: string;
+  description?: string;
   icon?: LucideIcon;
   iconBg?: string;
   iconColor?: string;
   action?: ReactNode;
 }) {
+  const sub = subtitle || description;
   return (
     <div className="flex items-center justify-between gap-4 px-6 pt-6">
       <div className="flex items-center gap-3 min-w-0">
@@ -51,8 +54,8 @@ export function CardHeader({
         )}
         <div className="min-w-0">
           <h3 className="truncate text-[15px] font-semibold tracking-tight text-foreground">{title}</h3>
-          {subtitle && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground whitespace-nowrap">{subtitle}</p>
+          {sub && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground whitespace-nowrap">{sub}</p>
           )}
         </div>
       </div>
