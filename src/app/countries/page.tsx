@@ -2,11 +2,8 @@
 
 import { useMemo, useState } from "react";
 import {
-  AlertCircle,
-  Briefcase,
   Building2,
   CheckCircle2,
-  Clock,
   Eye,
   Filter,
   Globe2,
@@ -16,7 +13,6 @@ import {
   Plus,
   Search,
   TrendingUp,
-  User,
   X,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -325,182 +321,143 @@ export default function CountriesPage() {
               No represented countries found matching your filters.
             </div>
           ) : (
-            filtered.map((country) => {
-              const totalApps = country.directApplications + country.agentApplications;
-              const completedRatio =
-                totalApps > 0 ? Math.round((country.completedLeads / totalApps) * 100) : 0;
+            filtered.map((country) => (
+              <Card
+                key={country.id}
+                className={cn(
+                  "rounded-2xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-primary/40 hover:shadow-md",
+                  !country.isActive && "opacity-60 bg-muted/20"
+                )}
+              >
+                {/* Top Row: Flag on left, Action controls on right */}
+                <div className="flex items-center justify-between">
+                  {/* Flag Badge */}
+                  <div className="flex h-7 w-11 items-center justify-center overflow-hidden rounded-md border border-slate-200/80 bg-slate-100/60 text-2xl shadow-2xs select-none dark:border-slate-800 dark:bg-slate-900/60">
+                    <span className="leading-none">{country.flag}</span>
+                  </div>
 
-              return (
-                <Card
-                  key={country.id}
-                  className={cn(
-                    "flex flex-col justify-between p-5 transition-all hover:border-primary/40 hover:shadow-md",
-                    !country.isActive && "opacity-60 bg-muted/10"
-                  )}
-                >
-                  <div>
-                    {/* Card Header: Flag, Name, and Top-Right Action Controls */}
-                    <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl select-none">{country.flag}</span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h3 className="text-base font-bold text-foreground">
-                              {country.name}
-                            </h3>
-                            <span className="font-mono text-[11px] font-semibold text-muted-foreground">
-                              ({country.code})
-                            </span>
-                          </div>
-                          <span className="text-[11px] text-muted-foreground">
-                            {country.region} • {country.currency}
+                  {/* Action Group: View, Edit, Active Switch */}
+                  <div className="flex items-center gap-1.5">
+                    {/* View Button */}
+                    <button
+                      type="button"
+                      onClick={() => setViewingCountry(country)}
+                      title="View Country Details"
+                      className="flex size-7 items-center justify-center rounded-md bg-[#e5a035] text-white shadow-2xs transition-all hover:bg-[#d6932b] active:scale-95 cursor-pointer"
+                    >
+                      <Eye className="size-3.5" />
+                    </button>
+
+                    {/* Edit Button */}
+                    <button
+                      type="button"
+                      onClick={() => setEditingCountry(country)}
+                      title="Edit Country Details"
+                      className="flex size-7 items-center justify-center rounded-md bg-[#7c5cdb] text-white shadow-2xs transition-all hover:bg-[#6b47cf] active:scale-95 cursor-pointer"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+
+                    {/* Toggle Switch */}
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={country.isActive}
+                      onClick={() => handleToggleActive(country.id)}
+                      title={
+                        country.isActive
+                          ? "Country is Active (click to disable)"
+                          : "Country is Inactive (click to enable)"
+                      }
+                      className={cn(
+                        "relative flex h-7 w-14 items-center rounded-full px-1.5 shadow-2xs transition-colors duration-200 cursor-pointer focus:outline-hidden select-none",
+                        country.isActive
+                          ? "bg-[#3867d6]"
+                          : "bg-slate-300 dark:bg-slate-700"
+                      )}
+                    >
+                      {country.isActive ? (
+                        <>
+                          <span className="text-[10px] font-bold tracking-wider text-white pl-0.5">
+                            On
                           </span>
-                        </div>
-                      </div>
-
-                      {/* Top Right Actions: View (Eye), Edit (Pencil), Switch Toggle */}
-                      <div className="flex items-center gap-1.5">
-                        {/* View Button */}
-                        <button
-                          type="button"
-                          onClick={() => setViewingCountry(country)}
-                          title="View Country Profile"
-                          className="flex size-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 transition-colors hover:bg-amber-500 hover:text-white dark:bg-amber-500/20 dark:text-amber-400"
-                        >
-                          <Eye className="size-3.5" />
-                        </button>
-
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => setEditingCountry(country)}
-                          title="Edit Country Details"
-                          className="flex size-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 transition-colors hover:bg-purple-500 hover:text-white dark:bg-purple-500/20 dark:text-purple-400"
-                        >
-                          <Pencil className="size-3.5" />
-                        </button>
-
-                        {/* Switch Toggle (Active / Inactive) */}
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={country.isActive}
-                          onClick={() => handleToggleActive(country.id)}
-                          title={country.isActive ? "Country is Active (click to disable)" : "Country is Inactive (click to enable)"}
-                          className={cn(
-                            "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden",
-                            country.isActive ? "bg-primary" : "bg-muted-foreground/30"
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "pointer-events-none inline-block size-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
-                              country.isActive ? "translate-x-4" : "translate-x-0"
-                            )}
-                          />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* The 6 Represented Metrics Table / List */}
-                    <div className="mt-3 divide-y divide-border/50 text-xs">
-                      {/* 1. Total Universities */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Building2 className="size-3.5 text-muted-foreground/70" />
-                          <span>Total Universities</span>
-                        </span>
-                        <span className="font-bold text-foreground tabular-nums">
-                          {country.partnerUniversities}
-                        </span>
-                      </div>
-
-                      {/* 2. Direct Applications */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <User className="size-3.5 text-muted-foreground/70" />
-                          <span>Direct Applications</span>
-                        </span>
-                        <span className="font-bold text-foreground tabular-nums">
-                          {country.directApplications}
-                        </span>
-                      </div>
-
-                      {/* 3. Agent Applications */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Briefcase className="size-3.5 text-muted-foreground/70" />
-                          <span>Agent Applications</span>
-                        </span>
-                        <span className="font-bold text-foreground tabular-nums">
-                          {country.agentApplications}
-                        </span>
-                      </div>
-
-                      {/* 4. Lead In Progress */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="size-3.5 text-amber-500" />
-                          <span>Lead In Progress</span>
-                        </span>
-                        <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 tabular-nums">
-                          {country.leadInProgress}
-                        </span>
-                      </div>
-
-                      {/* 5. Completed Leads */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <CheckCircle2 className="size-3.5 text-emerald-500" />
-                          <span>Completed Leads</span>
-                        </span>
-                        <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 tabular-nums">
-                          {country.completedLeads}
-                        </span>
-                      </div>
-
-                      {/* 6. Rejected Leads */}
-                      <div className="flex items-center justify-between py-2">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <AlertCircle className="size-3.5 text-rose-500" />
-                          <span>Rejected Leads</span>
-                        </span>
-                        <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 tabular-nums">
-                          {country.rejectedLeads}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar: Conversion / Lead Completion */}
-                    <div className="mt-4 rounded-xl bg-muted/30 p-2.5">
-                      <div className="flex items-center justify-between text-[11px] font-semibold mb-1">
-                        <span className="text-muted-foreground">Conversion Efficiency</span>
-                        <span className="text-emerald-600 dark:text-emerald-400">
-                          {completedRatio}% Success
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-emerald-500 transition-all"
-                          style={{ width: `${Math.min(100, completedRatio)}%` }}
-                        />
-                      </div>
-                    </div>
+                          <span className="ml-auto size-4 rounded-full bg-white shadow-xs" />
+                        </>
+                      ) : (
+                        <>
+                          <span className="size-4 rounded-full bg-white shadow-xs" />
+                          <span className="ml-auto text-[10px] font-bold tracking-wider text-slate-600 dark:text-slate-300 pr-0.5">
+                            Off
+                          </span>
+                        </>
+                      )}
+                    </button>
                   </div>
+                </div>
 
-                  {/* Card Footer: Visa TAT and Popular Intake */}
-                  <div className="mt-4 pt-3 border-t border-border/70 flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="size-3 text-muted-foreground" />
-                      <span>{country.processingDays}</span>
+                {/* Country Name */}
+                <h3 className="mt-3.5 text-base font-bold text-foreground tracking-tight">
+                  {country.name}
+                </h3>
+
+                {/* 6 Metrics Rows */}
+                <div className="mt-3 divide-y divide-border/60 text-xs">
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Total Universities
                     </span>
-                    <span className="font-semibold text-primary">
-                      {country.visaSuccessRate}% Visa Success
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.partnerUniversities}
                     </span>
                   </div>
-                </Card>
-              );
-            })
+
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Direct Applications
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.directApplications}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Agent Applications
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.agentApplications}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Lead In Progress
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.leadInProgress}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Completed Leads
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.completedLeads}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2">
+                    <span className="font-normal text-slate-600 dark:text-slate-400">
+                      Rejected Leads
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {country.rejectedLeads}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            ))
           )}
         </div>
       ) : (
