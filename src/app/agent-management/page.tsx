@@ -4,20 +4,22 @@ import { useMemo, useState } from "react";
 import {
   Briefcase,
   CheckCircle2,
+  ChevronDown,
   FileCheck,
-  Filter,
   GraduationCap,
   Mail,
   Phone,
   Plus,
-  Search,
   ShieldCheck,
   TrendingUp,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockAgents, type AgentRecord } from "@/lib/mock/directory";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function AgentManagementPage() {
   const [agents, setAgents] = useState<AgentRecord[]>(mockAgents);
@@ -106,136 +108,53 @@ export default function AgentManagementPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Onboard New Agent</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Active Agencies</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Briefcase className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {agents.length}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Contracted Partners</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Referred Applications</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <TrendingUp className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalReferred}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">+22% YoY</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Confirmed Enrolments</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <GraduationCap className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalEnrolled}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Across UK/EU/AU</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Conversion Ratio</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <CheckCircle2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {overallConversion}%
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">High Quality</span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Briefcase} label="Active agencies" value={agents.length} note="Contracted" />
+        <StatCard icon={TrendingUp} tone="primary" label="Referred applications" value={totalReferred.toLocaleString()} note="+22% YoY" />
+        <StatCard icon={GraduationCap} tone="success" label="Confirmed enrolments" value={totalEnrolled.toLocaleString()} />
+        <StatCard icon={CheckCircle2} tone="violet" label="Conversion ratio" value={`${overallConversion}%`} />
+      </StatGrid>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by agency name, contact person, or city..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={tierFilter}
-              onChange={(e) => setTierFilter(e.target.value)}
-              aria-label="Filter by Partner Tier"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Tiers</option>
-              <option value="Gold Partner">Gold Partner (60-65%)</option>
-              <option value="Silver Partner">Silver Partner (50-55%)</option>
-              <option value="Bronze Partner">Bronze Partner (45%)</option>
-            </select>
-
-            <select
-              value={complianceFilter}
-              onChange={(e) => setComplianceFilter(e.target.value)}
-              aria-label="Filter by Compliance"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Compliance</option>
-              <option value="Verified">Verified</option>
-              <option value="Pending Audit">Pending Audit</option>
-            </select>
-
-            {(search || tierFilter || complianceFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setTierFilter("");
-                  setComplianceFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search agency, contact or city…" label="Search agents" />
+        <SelectFilter
+          label="Tier"
+          allLabel="All tiers"
+          value={tierFilter}
+          onChange={setTierFilter}
+          options={[
+            { value: "Gold Partner", label: "Gold Partner (60–65%)" },
+            { value: "Silver Partner", label: "Silver Partner (50–55%)" },
+            { value: "Bronze Partner", label: "Bronze Partner (45%)" },
+          ]}
+        />
+        <SelectFilter
+          label="Compliance"
+          allLabel="All compliance"
+          value={complianceFilter}
+          onChange={setComplianceFilter}
+          options={["Verified", "Pending Audit"]}
+        />
+        {(search || tierFilter || complianceFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setTierFilter("");
+              setComplianceFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Agents Table */}
       <Card>
@@ -304,14 +223,24 @@ export default function AgentManagementPage() {
                       <td className="py-3.5 px-4 align-top">
                         <span
                           className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold whitespace-nowrap",
                             agent.tier === "Gold Partner"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                              ? "border-amber-300/70 bg-amber-500/15 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
                               : agent.tier === "Silver Partner"
-                              ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                              : "bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300"
+                              ? "border-slate-300/70 bg-slate-500/15 text-slate-700 dark:border-slate-400/30 dark:bg-slate-400/15 dark:text-slate-300"
+                              : "border-orange-300/70 bg-orange-500/15 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/15 dark:text-orange-300"
                           )}
                         >
+                          <span
+                            className={cn(
+                              "size-1.5 shrink-0 rounded-full",
+                              agent.tier === "Gold Partner"
+                                ? "bg-amber-500"
+                                : agent.tier === "Silver Partner"
+                                ? "bg-slate-400"
+                                : "bg-orange-500"
+                            )}
+                          />
                           {agent.tier}
                         </span>
                       </td>
@@ -328,13 +257,13 @@ export default function AgentManagementPage() {
                           <span className="font-medium text-foreground">
                             {agent.enrolledStudents} / {agent.referredApps} apps
                           </span>
-                          <span className="rounded-full bg-emerald-50 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          <span className="rounded-full bg-success/10 px-1.5 py-0.2 text-[10px] font-bold text-success">
                             {convPct}%
                           </span>
                         </div>
                         <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                           <div
-                            className="h-full bg-emerald-500 rounded-full"
+                            className="h-full bg-success rounded-full"
                             style={{ width: `${convPct}%` }}
                           />
                         </div>
@@ -345,8 +274,8 @@ export default function AgentManagementPage() {
                           className={cn(
                             "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                             agent.complianceStatus === "Verified"
-                              ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "border border-amber-500/20 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              ? "border border-success/20 bg-success/10 text-success"
+                              : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
                           )}
                         >
                           {agent.complianceStatus === "Verified" ? (
@@ -397,7 +326,9 @@ export default function AgentManagementPage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div>
-                <label className="text-xs font-medium text-foreground">Agency Brand Name</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Agency Brand Name <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -409,7 +340,7 @@ export default function AgentManagementPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground">Registered Legal Company Name</label>
+                <label className="text-xs font-semibold text-foreground">Registered Legal Company Name</label>
                 <input
                   type="text"
                   value={companyName}
@@ -421,7 +352,9 @@ export default function AgentManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Principal Contact Person</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Principal Contact Person <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -432,7 +365,9 @@ export default function AgentManagementPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Official Email</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Official Email <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="email"
                     required
@@ -446,7 +381,7 @@ export default function AgentManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">City</label>
+                  <label className="text-xs font-semibold text-foreground">City</label>
                   <input
                     type="text"
                     value={city}
@@ -455,7 +390,7 @@ export default function AgentManagementPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Country</label>
+                  <label className="text-xs font-semibold text-foreground">Country</label>
                   <input
                     type="text"
                     value={country}
@@ -467,19 +402,22 @@ export default function AgentManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Partner Tier</label>
-                  <select
-                    value={tier}
-                    onChange={(e) => setTier(e.target.value as AgentRecord["tier"])}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Gold Partner">Gold Partner</option>
-                    <option value="Silver Partner">Silver Partner</option>
-                    <option value="Bronze Partner">Bronze Partner</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Partner Tier</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={tier}
+                      onChange={(e) => setTier(e.target.value as AgentRecord["tier"])}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Gold Partner">Gold Partner</option>
+                      <option value="Silver Partner">Silver Partner</option>
+                      <option value="Bronze Partner">Bronze Partner</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Commission Rate</label>
+                  <label className="text-xs font-semibold text-foreground">Commission Rate</label>
                   <input
                     type="text"
                     value={commissionRate}
@@ -494,13 +432,13 @@ export default function AgentManagementPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Onboard Agent
                 </button>

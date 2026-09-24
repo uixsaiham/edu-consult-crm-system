@@ -4,19 +4,21 @@ import { useMemo, useState } from "react";
 import {
   Award,
   CheckCircle2,
-  Filter,
+  ChevronDown,
   GraduationCap,
   Mail,
   Phone,
   Plus,
-  Search,
   UserCheck,
   Users,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockPeople, type PersonRecord } from "@/lib/mock/directory";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function PeoplePage() {
   const [people, setPeople] = useState<PersonRecord[]>(mockPeople);
@@ -99,141 +101,54 @@ export default function PeoplePage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Invite Team Member</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Staff Members</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Users className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {people.length}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">All Verified</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Active Lead Caseload</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <UserCheck className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalLeads}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Under active guidance</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Placed Students</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <GraduationCap className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalEnrolled}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Enrolled in 2026</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Avg Conversion Rate</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <Award className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {avgConversion}%
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Top Benchmark</span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Users} label="Total staff" value={people.length} note="Verified" />
+        <StatCard icon={UserCheck} tone="teal" label="Active lead caseload" value={totalLeads.toLocaleString()} />
+        <StatCard icon={GraduationCap} tone="success" label="Placed students" value={totalEnrolled.toLocaleString()} note="2026" />
+        <StatCard icon={Award} tone="violet" label="Avg conversion rate" value={`${avgConversion}%`} />
+      </StatGrid>
 
       {/* Search and Filters */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search staff by name, email, role, or branch..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              aria-label="Filter by Role"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Roles</option>
-              <option value="Senior Counselor">Senior Counselor</option>
-              <option value="Education Counselor">Education Counselor</option>
-              <option value="Branch Manager">Branch Manager</option>
-              <option value="Admissions Officer">Admissions Officer</option>
-              <option value="Compliance Lead">Compliance Lead</option>
-            </select>
-
-            <select
-              value={officeFilter}
-              onChange={(e) => setOfficeFilter(e.target.value)}
-              aria-label="Filter by Office Branch"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Offices</option>
-              {officesList.map((off) => (
-                <option key={off} value={off}>
-                  {off}
-                </option>
-              ))}
-            </select>
-
-            {(search || roleFilter || officeFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setRoleFilter("");
-                  setOfficeFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search name, email, role or branch…" label="Search staff" />
+        <SelectFilter
+          label="Role"
+          allLabel="All roles"
+          value={roleFilter}
+          onChange={setRoleFilter}
+          options={["Senior Counselor", "Education Counselor", "Branch Manager", "Admissions Officer", "Compliance Lead"].map((r) => ({
+            value: r,
+            label: r,
+            hint: people.filter((p) => p.role === r).length,
+          }))}
+        />
+        <SelectFilter
+          label="Office"
+          allLabel="All offices"
+          width="w-64"
+          value={officeFilter}
+          onChange={setOfficeFilter}
+          options={officesList.map((o) => ({ value: o, label: o, hint: people.filter((p) => p.office === o).length }))}
+        />
+        {(search || roleFilter || officeFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setRoleFilter("");
+              setOfficeFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Staff Table */}
       <Card>
@@ -316,7 +231,7 @@ export default function PeoplePage() {
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                        <div className="flex items-center gap-1.5 font-semibold text-success">
                           <CheckCircle2 className="size-3.5" />
                           <span>{person.enrolledCount} enrolled</span>
                         </div>
@@ -333,8 +248,8 @@ export default function PeoplePage() {
                           className={cn(
                             "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
                             person.status === "Active"
-                              ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "border border-amber-500/20 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              ? "border border-success/20 bg-success/10 text-success"
+                              : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
                           )}
                         >
                           {person.status}
@@ -380,7 +295,9 @@ export default function PeoplePage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div>
-                <label className="text-xs font-medium text-foreground">Full Name</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Full Name <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -393,7 +310,9 @@ export default function PeoplePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Work Email</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Work Email <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="email"
                     required
@@ -404,7 +323,7 @@ export default function PeoplePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Official Phone / WhatsApp</label>
+                  <label className="text-xs font-semibold text-foreground">Official Phone / WhatsApp</label>
                   <input
                     type="text"
                     value={phone}
@@ -417,33 +336,39 @@ export default function PeoplePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Role</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as PersonRecord["role"])}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Education Counselor">Education Counselor</option>
-                    <option value="Senior Counselor">Senior Counselor</option>
-                    <option value="Branch Manager">Branch Manager</option>
-                    <option value="Admissions Officer">Admissions Officer</option>
-                    <option value="Compliance Lead">Compliance Lead</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Role</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value as PersonRecord["role"])}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Education Counselor">Education Counselor</option>
+                      <option value="Senior Counselor">Senior Counselor</option>
+                      <option value="Branch Manager">Branch Manager</option>
+                      <option value="Admissions Officer">Admissions Officer</option>
+                      <option value="Compliance Lead">Compliance Lead</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-foreground">Assigned Branch</label>
-                  <select
-                    value={office}
-                    onChange={(e) => setOffice(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    {officesList.map((off) => (
-                      <option key={off} value={off}>
-                        {off}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Assigned Branch</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={office}
+                      onChange={(e) => setOffice(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      {officesList.map((off) => (
+                        <option key={off} value={off}>
+                          {off}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
@@ -451,13 +376,13 @@ export default function PeoplePage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Send Invitation
                 </button>

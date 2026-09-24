@@ -6,17 +6,19 @@ import {
   Award,
   Calendar,
   CheckCircle2,
-  Filter,
+  ChevronDown,
   Layers,
   Plus,
-  Search,
   Target,
   TrendingUp,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockTargets, type TargetRecord } from "@/lib/mock/insights";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function TargetSetupPage() {
   const [targets, setTargets] = useState<TargetRecord[]>(mockTargets);
@@ -95,139 +97,57 @@ export default function TargetSetupPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Set New Target</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Intake Target</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Target className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalTargetQuota}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Students Target</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Confirmed Enrolments</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <CheckCircle2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalAchieved}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              {pacingRatio}% achieved
-            </span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Pipeline In-Flight</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <TrendingUp className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalPipeline}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Offers / CAS stage</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Census Cutoff Deadline</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <Calendar className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              15 Oct 2026
-            </span>
-            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">28 days left</span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Target} label="Total intake target" value={totalTargetQuota.toLocaleString()} note="Students" />
+        <StatCard icon={CheckCircle2} tone="success" label="Confirmed enrolments" value={totalAchieved.toLocaleString()} note={`${pacingRatio}%`} />
+        <StatCard icon={TrendingUp} tone="teal" label="Pipeline in flight" value={totalPipeline.toLocaleString()} note="Offers / CAS" />
+        <StatCard icon={Calendar} tone="warning" label="Census cutoff" value="15 Oct 2026" note="28 days left" />
+      </StatGrid>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search targets by entity or intake..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              aria-label="Filter by Target Scope"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Scopes</option>
-              <option value="Branch">Branch Targets</option>
-              <option value="Counselor">Counselor Targets</option>
-              <option value="Destination Country">Country Targets</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by Status"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Statuses</option>
-              <option value="Exceeded">Exceeded</option>
-              <option value="On Track">On Track</option>
-              <option value="Needs Attention">Needs Attention</option>
-            </select>
-
-            {(search || typeFilter || statusFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setTypeFilter("");
-                  setStatusFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search entity or intake…" label="Search targets" />
+        <SelectFilter
+          label="Scope"
+          allLabel="All scopes"
+          value={typeFilter}
+          onChange={setTypeFilter}
+          options={[
+            { value: "Branch", label: "Branch targets" },
+            { value: "Counselor", label: "Counsellor targets" },
+            { value: "Destination Country", label: "Country targets" },
+          ].map((o) => ({ ...o, hint: targets.filter((t) => t.entityType === o.value).length }))}
+        />
+        <SelectFilter
+          label="Status"
+          allLabel="All statuses"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={["Exceeded", "On Track", "Needs Attention", "Critical Risk"].map((st) => ({
+            value: st,
+            label: st,
+            hint: targets.filter((t) => t.status === st).length,
+          }))}
+        />
+        {(search || typeFilter || statusFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setTypeFilter("");
+              setStatusFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Targets Table */}
       <Card>
@@ -310,7 +230,7 @@ export default function TargetSetupPage() {
                             className={cn(
                               "h-full rounded-full transition-all",
                               pct >= 90
-                                ? "bg-emerald-500"
+                                ? "bg-success"
                                 : pct >= 70
                                 ? "bg-primary"
                                 : "bg-amber-500"
@@ -329,10 +249,10 @@ export default function TargetSetupPage() {
                           className={cn(
                             "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                             target.status === "Exceeded"
-                              ? "border border-purple-500/20 bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300"
+                              ? "border border-purple-500/20 bg-purple-700/10 text-purple-700 dark:bg-purple-300/10 dark:text-purple-300"
                               : target.status === "On Track"
-                              ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "border border-amber-500/20 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              ? "border border-success/20 bg-success/10 text-success"
+                              : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
                           )}
                         >
                           {target.status === "Exceeded" ? (
@@ -386,34 +306,42 @@ export default function TargetSetupPage() {
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Intake Name</label>
-                  <select
-                    value={intakeName}
-                    onChange={(e) => setIntakeName(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="September 2026">September 2026</option>
-                    <option value="January 2027">January 2027</option>
-                    <option value="May 2027">May 2027</option>
-                    <option value="September 2027">September 2027</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Intake Name</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={intakeName}
+                      onChange={(e) => setIntakeName(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="September 2026">September 2026</option>
+                      <option value="January 2027">January 2027</option>
+                      <option value="May 2027">May 2027</option>
+                      <option value="September 2027">September 2027</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Target Scope</label>
-                  <select
-                    value={entityType}
-                    onChange={(e) => setEntityType(e.target.value as TargetRecord["entityType"])}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Branch">Branch</option>
-                    <option value="Counselor">Counselor</option>
-                    <option value="Destination Country">Destination Country</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Target Scope</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={entityType}
+                      onChange={(e) => setEntityType(e.target.value as TargetRecord["entityType"])}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Branch">Branch</option>
+                      <option value="Counselor">Counselor</option>
+                      <option value="Destination Country">Destination Country</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground">Entity Name</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Entity Name <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -426,7 +354,9 @@ export default function TargetSetupPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Enrolment Target (Students)</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Enrolment Target (Students) <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="number"
                     min={1}
@@ -437,7 +367,7 @@ export default function TargetSetupPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Census Cutoff Date</label>
+                  <label className="text-xs font-semibold text-foreground">Census Cutoff Date</label>
                   <input
                     type="date"
                     value={censusDate}
@@ -451,13 +381,13 @@ export default function TargetSetupPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Save Target
                 </button>

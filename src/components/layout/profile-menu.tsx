@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { LogOut, User } from "lucide-react";
 import { useUser } from "@/components/layout/user-context";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useClickOutside } from "@/lib/use-click-outside";
 import { initialsFor } from "@/lib/utils";
 
@@ -15,16 +16,18 @@ export function ProfileMenu() {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Account menu"
-        aria-expanded={open}
-        className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground transition-transform active:scale-95"
-      >
-        {initialsFor(user.name)}
-        <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-surface bg-success" />
-      </button>
+      <Tooltip label="Account" hidden={open} align="end">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Account menu"
+          aria-expanded={open}
+          className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground transition-transform active:scale-95"
+        >
+          {initialsFor(user.name)}
+          <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-surface bg-success" />
+        </button>
+      </Tooltip>
 
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl animate-fade-in">

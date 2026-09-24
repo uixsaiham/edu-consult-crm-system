@@ -10,7 +10,6 @@ import {
   GraduationCap,
   HeartHandshake,
   Layout,
-  ListOrdered,
   Megaphone,
   MessageCircle,
   PieChart as PieChartIcon,
@@ -48,61 +47,61 @@ const channelMeta: Record<string, ChannelMeta> = {
     icon: Clapperboard,
     color: "#3b82f6",
     gradient: "from-blue-500 to-indigo-600",
-    bgSoft: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+    bgSoft: "bg-blue-600/10 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
   },
   "All Leads Import": {
     icon: Database,
     color: "#8b5cf6",
     gradient: "from-violet-500 to-purple-600",
-    bgSoft: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+    bgSoft: "bg-purple-600/10 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
   },
   "Facebook Ads": {
     icon: Share2,
     color: "#0ea5e9",
     gradient: "from-sky-500 to-blue-600",
-    bgSoft: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
+    bgSoft: "bg-sky-600/10 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
   },
   "CRM (Manual)": {
     icon: UserCheck,
     color: "#0d9488",
-    gradient: "from-teal-500 to-emerald-600",
-    bgSoft: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400",
+    gradient: "from-teal-500 to-success",
+    bgSoft: "bg-teal-600/10 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400",
   },
   "Consultation Form": {
     icon: ClipboardList,
     color: "#ec4899",
     gradient: "from-pink-500 to-rose-600",
-    bgSoft: "bg-pink-50 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400",
+    bgSoft: "bg-pink-600/10 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400",
   },
   "Landing Page Form": {
     icon: Layout,
     color: "#f97316",
     gradient: "from-amber-500 to-orange-600",
-    bgSoft: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
+    bgSoft: "bg-orange-600/10 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
   },
   "WhatsApp Direct": {
     icon: MessageCircle,
-    color: "#10b981",
-    gradient: "from-emerald-500 to-green-600",
-    bgSoft: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    color: "#45c348",
+    gradient: "from-success to-success",
+    bgSoft: "bg-success/10 text-success",
   },
   "University Fair": {
     icon: GraduationCap,
     color: "#6366f1",
     gradient: "from-indigo-500 to-indigo-700",
-    bgSoft: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
+    bgSoft: "bg-indigo-600/10 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
   },
   "Referral Partner": {
     icon: HeartHandshake,
     color: "#eab308",
     gradient: "from-amber-400 to-yellow-500",
-    bgSoft: "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
+    bgSoft: "bg-yellow-700/10 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   },
   "Google Organic": {
     icon: Globe,
     color: "#14b8a6",
     gradient: "from-teal-400 to-teal-600",
-    bgSoft: "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400",
+    bgSoft: "bg-teal-700/10 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400",
   },
 };
 
@@ -142,7 +141,7 @@ function LeadSourceTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export function Top10LeadSources() {
-  const [viewMode, setViewMode] = useState<"donut" | "chart" | "list">("donut");
+  const [viewMode, setViewMode] = useState<"donut" | "chart">("donut");
   const rawData = getTop10LeadSources();
 
   const totalLeads = useMemo(() => {
@@ -209,20 +208,6 @@ export function Top10LeadSources() {
             >
               <BarChart3 className="size-3.5 shrink-0" />
               <span className="whitespace-nowrap">Bars</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              aria-label="Ranked list view"
-              className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                viewMode === "list"
-                  ? "bg-surface text-primary shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <ListOrdered className="size-3.5 shrink-0" />
-              <span className="whitespace-nowrap">List</span>
             </button>
           </div>
         }
@@ -296,7 +281,7 @@ export function Top10LeadSources() {
               })}
             </div>
           </div>
-        ) : viewMode === "chart" ? (
+        ) : (
           /* Modern Horizontal Bar Chart matching Image 2 with sleek styling */
           <div className="flex flex-col">
             <div className="h-[350px] w-full pt-2">
@@ -364,57 +349,6 @@ export function Top10LeadSources() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        ) : (
-          /* Ranked Channel List */
-          <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1 pt-1">
-            {listData.map((item, idx) => {
-              const meta = channelMeta[item.source] || defaultMeta;
-              const Icon = meta.icon;
-              const widthPct = Math.max((item.value / topChannel.value) * 100, 5);
-
-              return (
-                <div
-                  key={item.source}
-                  className="group flex flex-col gap-1.5 rounded-xl border border-border/60 bg-surface p-2.5 transition-colors hover:border-border-strong hover:bg-surface-muted/40"
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className={cn(
-                          "flex size-6 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110",
-                          meta.bgSoft
-                        )}
-                      >
-                        <Icon className="size-3.5" />
-                      </span>
-                      <span className="truncate font-semibold text-foreground">
-                        {item.source}
-                      </span>
-                      <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                        #{idx + 1}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-bold text-foreground tabular-nums">
-                        {item.value}
-                      </span>
-                      <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
-                        {item.pct}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted ring-1 ring-border/30">
-                    <div
-                      className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-500", meta.gradient)}
-                      style={{ width: `${widthPct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
 

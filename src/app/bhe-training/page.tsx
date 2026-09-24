@@ -4,17 +4,20 @@ import { useMemo, useState } from "react";
 import {
   Award,
   BookOpen,
+  ChevronDown,
   Clock,
   Play,
   Plus,
-  Search,
   ShieldCheck,
   Star,
   X,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockTrainingCourses, type TrainingCourse } from "@/lib/mock/insights";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function BheTrainingPage() {
   const [courses, setCourses] = useState<TrainingCourse[]>(mockTrainingCourses);
@@ -102,110 +105,44 @@ export default function BheTrainingPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Add Training Module</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Certified Staff</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <ShieldCheck className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              96%
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">46 / 48 Counselors</span>
-          </div>
-        </Card>
+      <StatGrid>
+        <StatCard icon={ShieldCheck} label="Certified staff" value="96%" note="46 / 48" />
+        <StatCard icon={BookOpen} tone="teal" label="Active modules" value={courses.length} note="Updated 2026" />
+        <StatCard icon={Star} tone="warning" label="Academy avg score" value={`${avgAcademyScore}%`} note="Pass 85%" />
+        <StatCard icon={Clock} tone="violet" label="Curriculum hours" value={totalHours} note="52 lessons" />
+      </StatGrid>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Active Courses</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <BookOpen className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {courses.length} Modules
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Updated 2026</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Academy Avg Score</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-              <Star className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {avgAcademyScore}%
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Pass Mark 85%</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Curriculum Volume</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <Clock className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalHours} Hours
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">52 Total Lessons</span>
-          </div>
-        </Card>
-      </div>
-
-      {/* Category Pills & Search */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-semibold transition-all",
-                  activeCategory === cat
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                )}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative w-full lg:w-72">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search training modules..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </Card>
+      {/* Category & Search */}
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search training modules…" label="Search training" />
+        <SelectFilter
+          label="Category"
+          allLabel="All categories"
+          width="w-64"
+          value={activeCategory === "All" ? "" : activeCategory}
+          onChange={(v) => setActiveCategory(v || "All")}
+          options={categories
+            .filter((c) => c !== "All")
+            .map((c) => ({ value: c, label: c, hint: courses.filter((course) => course.category === c).length }))}
+        />
+        {(search || activeCategory !== "All") && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setActiveCategory("All");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Course Cards Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -232,8 +169,8 @@ export default function BheTrainingPage() {
                       className={cn(
                         "rounded-full px-2 py-0.5 text-[10px] font-semibold",
                         course.level === "Mandatory Core"
-                          ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
-                          : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                          ? "bg-rose-700/10 text-rose-700 dark:bg-rose-300/10 dark:text-rose-300"
+                          : "bg-blue-700/10 text-blue-700 dark:bg-blue-300/10 dark:text-blue-300"
                       )}
                     >
                       {course.level}
@@ -277,7 +214,7 @@ export default function BheTrainingPage() {
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full bg-emerald-500 rounded-full"
+                        className="h-full bg-success rounded-full"
                         style={{ width: `${completionPct}%` }}
                       />
                     </div>
@@ -325,7 +262,9 @@ export default function BheTrainingPage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div>
-                <label className="text-xs font-medium text-foreground">Course Title</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Course Title <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -338,35 +277,41 @@ export default function BheTrainingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as TrainingCourse["category"])}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="UKVI Visa & Compliance">UKVI Visa & Compliance</option>
-                    <option value="Admissions & Credibility">Admissions & Credibility</option>
-                    <option value="Sales & Lead Conversion">Sales & Lead Conversion</option>
-                    <option value="Institution Portals">Institution Portals</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Category</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as TrainingCourse["category"])}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="UKVI Visa & Compliance">UKVI Visa & Compliance</option>
+                      <option value="Admissions & Credibility">Admissions & Credibility</option>
+                      <option value="Sales & Lead Conversion">Sales & Lead Conversion</option>
+                      <option value="Institution Portals">Institution Portals</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Curriculum Level</label>
-                  <select
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value as TrainingCourse["level"])}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Mandatory Core">Mandatory Core</option>
-                    <option value="Advanced Specialist">Advanced Specialist</option>
-                    <option value="Annual Refresher">Annual Refresher</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Curriculum Level</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value as TrainingCourse["level"])}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Mandatory Core">Mandatory Core</option>
+                      <option value="Advanced Specialist">Advanced Specialist</option>
+                      <option value="Annual Refresher">Annual Refresher</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Duration (Hours)</label>
+                  <label className="text-xs font-semibold text-foreground">Duration (Hours)</label>
                   <input
                     type="number"
                     min={1}
@@ -376,7 +321,7 @@ export default function BheTrainingPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Lesson Count</label>
+                  <label className="text-xs font-semibold text-foreground">Lesson Count</label>
                   <input
                     type="number"
                     min={1}
@@ -389,7 +334,9 @@ export default function BheTrainingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Lead Instructor</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Lead Instructor <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -399,7 +346,7 @@ export default function BheTrainingPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Certification Badge</label>
+                  <label className="text-xs font-semibold text-foreground">Certification Badge</label>
                   <input
                     type="text"
                     value={badge}
@@ -414,13 +361,13 @@ export default function BheTrainingPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Publish Module
                 </button>

@@ -2,10 +2,12 @@
 
 import { useTheme } from "next-themes";
 import { Menu, Moon, Sun } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { MessagesDropdown } from "@/components/layout/messages-dropdown";
 import { ProfileMenu } from "@/components/layout/profile-menu";
+import { FollowUpMenu, MeetingMenu, NotesMenu } from "@/components/layout/quick-actions";
 import { useUser } from "@/components/layout/user-context";
 
 export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
@@ -35,15 +37,23 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
       <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <GlobalSearch />
 
+        <div className="hidden items-center gap-0.5 rounded-full border border-border bg-surface-muted p-1 sm:flex">
+          <FollowUpMenu />
+          <MeetingMenu />
+          <NotesMenu />
+        </div>
+
         <div className="flex items-center gap-0.5 rounded-full border border-border bg-surface-muted p-1">
-          <button
-            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
-            aria-label="Toggle theme"
-          >
-            <Sun className="theme-icon-dark size-[17px]" />
-            <Moon className="theme-icon-light size-[17px]" />
-          </button>
+          <Tooltip label="Toggle theme">
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+              aria-label="Toggle theme"
+            >
+              <Sun className="theme-icon-dark size-[17px]" />
+              <Moon className="theme-icon-light size-[17px]" />
+            </button>
+          </Tooltip>
 
           <MessagesDropdown />
           <NotificationBell />

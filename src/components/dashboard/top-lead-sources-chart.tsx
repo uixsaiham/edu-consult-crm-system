@@ -34,55 +34,55 @@ const channelConfigs: Record<string, ChannelConfig> = {
     icon: Clapperboard,
     color: "#6366f1",
     gradient: "from-indigo-500 to-indigo-600",
-    bgSoft: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
+    bgSoft: "bg-indigo-600/10 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
   },
   "All Leads Import": {
     icon: Database,
     color: "#8b5cf6",
     gradient: "from-violet-500 to-purple-600",
-    bgSoft: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+    bgSoft: "bg-purple-600/10 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
   },
   "Facebook Ads": {
     icon: Share2,
     color: "#0ea5e9",
     gradient: "from-sky-500 to-blue-600",
-    bgSoft: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
+    bgSoft: "bg-sky-600/10 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
   },
   "CRM (Manual)": {
     icon: UserCheck,
     color: "#0d9488",
-    gradient: "from-teal-500 to-emerald-600",
-    bgSoft: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400",
+    gradient: "from-teal-500 to-success",
+    bgSoft: "bg-teal-600/10 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400",
   },
   "Consultation Form": {
     icon: ClipboardList,
     color: "#ec4899",
     gradient: "from-pink-500 to-rose-600",
-    bgSoft: "bg-pink-50 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400",
+    bgSoft: "bg-pink-600/10 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400",
   },
   "Landing Page Form": {
     icon: Layout,
     color: "#f97316",
     gradient: "from-amber-500 to-orange-600",
-    bgSoft: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
+    bgSoft: "bg-orange-600/10 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
   },
   WhatsApp: {
     icon: MessageCircle,
-    color: "#10b981",
-    gradient: "from-emerald-500 to-green-600",
-    bgSoft: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    color: "#45c348",
+    gradient: "from-success to-success",
+    bgSoft: "bg-success/10 text-success",
   },
   Others: {
     icon: Layers,
     color: "#64748b",
     gradient: "from-slate-500 to-gray-600",
-    bgSoft: "bg-slate-100 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400",
+    bgSoft: "bg-slate-600/10 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400",
   },
   Referral: {
     icon: HeartHandshake,
     color: "#eab308",
     gradient: "from-amber-400 to-yellow-500",
-    bgSoft: "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
+    bgSoft: "bg-yellow-700/10 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   },
 };
 
@@ -324,7 +324,7 @@ export function TopLeadSourcesChart() {
               #1 acquisition channel ({topChannel.pct}% of total).
             </p>
           </div>
-          <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-bold text-emerald-600 shadow-xs dark:text-emerald-400">
+          <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-[10px] font-bold text-success shadow-xs">
             Top Driver
           </span>
         </div>

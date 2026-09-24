@@ -4,17 +4,19 @@ import { useMemo, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
+  ChevronDown,
   Download,
-  Filter,
   Plus,
   Receipt,
-  Search,
   Wallet,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockFinanceTransactions, type FinanceTransaction } from "@/lib/mock/insights";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function FinancePage() {
   const [transactions, setTransactions] =
@@ -102,125 +104,46 @@ export default function FinancePage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Record Invoice / Commission</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Gross Commissions</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Receipt className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              £{totalGrossCommission.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Total Billed</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Net BHE Revenue</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <ArrowDownRight className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              £{totalNetRevenue.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">After Partner Split</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Sub-Agent Disbursements</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <ArrowUpRight className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              £{totalAgentPayout.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">B2B Share</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Tuition Deposits Tracked</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <Wallet className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              £{totalDeposits.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Verified by Uni</span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Receipt} label="Gross commissions" value={`£${totalGrossCommission.toLocaleString()}`} note="Billed" />
+        <StatCard icon={ArrowDownRight} tone="success" label="Net BHE revenue" value={`£${totalNetRevenue.toLocaleString()}`} note="After split" />
+        <StatCard icon={ArrowUpRight} tone="warning" label="Sub-agent payouts" value={`£${totalAgentPayout.toLocaleString()}`} note="B2B share" />
+        <StatCard icon={Wallet} tone="violet" label="Tuition deposits" value={`£${totalDeposits.toLocaleString()}`} note="Verified" />
+      </StatGrid>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search invoice ref, student name, ID, or university..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by Invoice Status"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Invoice Statuses</option>
-              <option value="Paid">Paid</option>
-              <option value="Invoice Approved">Invoice Approved</option>
-              <option value="Pending University Approval">Pending University Approval</option>
-              <option value="Under Review">Under Review</option>
-            </select>
-
-            {(search || statusFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setStatusFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search invoice, student, ID, university…" label="Search transactions" />
+        <SelectFilter
+          label="Invoice status"
+          allLabel="All statuses"
+          width="w-64"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={["Paid", "Invoice Approved", "Pending University Approval", "Under Review"].map((st) => ({
+            value: st,
+            label: st,
+            hint: transactions.filter((t) => t.status === st).length,
+          }))}
+        />
+        {(search || statusFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setStatusFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Transactions Table */}
       <Card>
@@ -280,7 +203,7 @@ export default function FinancePage() {
                       <span className="font-semibold text-foreground block">
                         £{tx.tuitionFee.toLocaleString()}
                       </span>
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                      <span className="text-[11px] text-success">
                         Deposit: £{tx.depositAmount.toLocaleString()}
                       </span>
                     </td>
@@ -303,7 +226,7 @@ export default function FinancePage() {
                     </td>
 
                     <td className="py-3.5 px-4 align-top">
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 block text-sm">
+                      <span className="font-bold text-success block text-sm">
                         £{tx.netRevenue.toLocaleString()}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
@@ -316,10 +239,10 @@ export default function FinancePage() {
                         className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
                           tx.status === "Paid"
-                            ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            ? "border border-success/20 bg-success/10 text-success"
                             : tx.status === "Invoice Approved"
-                            ? "border border-blue-500/20 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
-                            : "border border-amber-500/20 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                            ? "border border-blue-500/20 bg-blue-700/10 text-blue-700 dark:bg-blue-300/10 dark:text-blue-300"
+                            : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
                         )}
                       >
                         {tx.status}
@@ -366,7 +289,9 @@ export default function FinancePage() {
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Student Full Name</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Student Full Name <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -377,7 +302,9 @@ export default function FinancePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Student ID</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Student ID <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -390,7 +317,9 @@ export default function FinancePage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground">Host University</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Host University <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -403,7 +332,7 @@ export default function FinancePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Total Tuition Fee (£)</label>
+                  <label className="text-xs font-semibold text-foreground">Total Tuition Fee (£)</label>
                   <input
                     type="number"
                     min={1000}
@@ -413,7 +342,7 @@ export default function FinancePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Deposit Paid (£)</label>
+                  <label className="text-xs font-semibold text-foreground">Deposit Paid (£)</label>
                   <input
                     type="number"
                     min={500}
@@ -426,20 +355,23 @@ export default function FinancePage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Currency</label>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="GBP">GBP (£)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="AUD">AUD ($)</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Currency</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="GBP">GBP (£)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="AUD">AUD ($)</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Commission (%)</label>
+                  <label className="text-xs font-semibold text-foreground">Commission (%)</label>
                   <input
                     type="number"
                     min={5}
@@ -450,7 +382,7 @@ export default function FinancePage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Sub-Agent Share</label>
+                  <label className="text-xs font-semibold text-foreground">Sub-Agent Share</label>
                   <input
                     type="number"
                     min={0}
@@ -465,13 +397,13 @@ export default function FinancePage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Generate Invoice Record
                 </button>

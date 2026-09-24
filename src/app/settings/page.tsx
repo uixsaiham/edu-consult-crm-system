@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Building2,
   Check,
+  ChevronDown,
   MessageSquare,
   Save,
   Shield,
@@ -46,7 +47,7 @@ export default function SettingsPage() {
             className={cn(
               "inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold shadow-xs transition-all active:scale-95",
               savedFeedback
-                ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                ? "bg-success text-white hover:bg-success/90"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
@@ -136,7 +137,7 @@ export default function SettingsPage() {
               />
               <div className="mt-4 flex flex-col gap-4 text-xs">
                 <div>
-                  <label className="font-medium text-foreground">Organization Legal Name</label>
+                  <label className="text-xs font-semibold text-foreground">Organization Legal Name</label>
                   <input
                     type="text"
                     value={settings.orgName}
@@ -146,7 +147,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Student Portal URL</label>
+                  <label className="text-xs font-semibold text-foreground">Student Portal URL</label>
                   <input
                     type="url"
                     value={settings.portalUrl}
@@ -156,7 +157,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Compliance & Support Email</label>
+                  <label className="text-xs font-semibold text-foreground">Compliance & Support Email</label>
                   <input
                     type="email"
                     value={settings.supportEmail}
@@ -174,36 +175,42 @@ export default function SettingsPage() {
               />
               <div className="mt-4 flex flex-col gap-4 text-xs">
                 <div>
-                  <label className="font-medium text-foreground">Default Accounting Currency</label>
-                  <select
-                    value={settings.defaultCurrency}
-                    onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="GBP (£)">GBP (£) - British Pound</option>
-                    <option value="USD ($)">USD ($) - US Dollar</option>
-                    <option value="EUR (€)">EUR (€) - Euro</option>
-                    <option value="BDT (৳)">BDT (৳) - Bangladeshi Taka</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Default Accounting Currency</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={settings.defaultCurrency}
+                      onChange={(e) => setSettings({ ...settings, defaultCurrency: e.target.value })}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="GBP (£)">GBP (£) - British Pound</option>
+                      <option value="USD ($)">USD ($) - US Dollar</option>
+                      <option value="EUR (€)">EUR (€) - Euro</option>
+                      <option value="BDT (৳)">BDT (৳) - Bangladeshi Taka</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Primary Destination Market</label>
-                  <select
-                    value={settings.primaryDestination}
-                    onChange={(e) => setSettings({ ...settings, primaryDestination: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="United States">United States</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                    <option value="Ireland">Ireland</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Primary Destination Market</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={settings.primaryDestination}
+                      onChange={(e) => setSettings({ ...settings, primaryDestination: e.target.value })}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Ireland">Ireland</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Operational Timezone</label>
+                  <label className="text-xs font-semibold text-foreground">Operational Timezone</label>
                   <input
                     type="text"
                     value={settings.timezone}
@@ -213,7 +220,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Current Academic Cycle</label>
+                  <label className="text-xs font-semibold text-foreground">Current Academic Cycle</label>
                   <input
                     type="text"
                     value={settings.academicYear}
@@ -253,25 +260,28 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Allocation Algorithm</label>
-                  <select
-                    value={settings.assignmentAlgorithm}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        assignmentAlgorithm: e.target.value as OrganizationSettings["assignmentAlgorithm"],
-                      })
-                    }
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Round-Robin by Branch">Round-Robin by Branch</option>
-                    <option value="Language & Country Matching">Language & Destination Matching</option>
-                    <option value="Equal Workload Capacity">Equal Workload Capacity</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Allocation Algorithm</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={settings.assignmentAlgorithm}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          assignmentAlgorithm: e.target.value as OrganizationSettings["assignmentAlgorithm"],
+                        })
+                      }
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Round-Robin by Branch">Round-Robin by Branch</option>
+                      <option value="Language & Country Matching">Language & Destination Matching</option>
+                      <option value="Equal Workload Capacity">Equal Workload Capacity</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">
+                  <label className="text-xs font-semibold text-foreground">
                     Dormancy Archival Threshold (Days)
                   </label>
                   <input
@@ -341,7 +351,7 @@ export default function SettingsPage() {
               />
               <div className="mt-4 flex flex-col gap-4 text-xs">
                 <div>
-                  <label className="font-medium text-foreground">Incoming Webhook Callback URL</label>
+                  <label className="text-xs font-semibold text-foreground">Incoming Webhook Callback URL</label>
                   <input
                     type="text"
                     value={settings.whatsAppWebhookUrl}
@@ -371,7 +381,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">Greeting Message Template</label>
+                  <label className="text-xs font-semibold text-foreground">Greeting Message Template</label>
                   <textarea
                     rows={4}
                     value={settings.defaultGreetingText}
@@ -388,14 +398,14 @@ export default function SettingsPage() {
                 description="Status of cloud webhook listeners across international lines."
               />
               <div className="mt-4 flex flex-col gap-3 text-xs">
-                <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 p-3">
+                <div className="flex items-center justify-between rounded-xl border border-success/20 bg-success/10 p-3">
                   <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-semibold text-emerald-800 dark:text-emerald-300">
+                    <span className="size-2 rounded-full bg-success animate-pulse" />
+                    <span className="font-semibold text-success">
                       Webhook Listener Status: Healthy (200 OK)
                     </span>
                   </div>
-                  <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono">
+                  <span className="text-[11px] text-success font-mono">
                     Ping 42ms
                   </span>
                 </div>
@@ -440,7 +450,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="font-medium text-foreground">
+                  <label className="text-xs font-semibold text-foreground">
                     Idle Session Timeout (Minutes)
                   </label>
                   <input

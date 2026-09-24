@@ -8,7 +8,6 @@ import {
   Clock,
   Download,
   FileText,
-  Filter,
   Search,
   X,
 } from "lucide-react";
@@ -19,14 +18,20 @@ import { cn } from "@/lib/utils";
 type ActivityFilter = "all" | "status-change" | "note-create";
 
 const statusColors: Record<string, string> = {
-  New: "bg-sky-50 text-sky-700 border-sky-200/60 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20",
-  Hot: "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-  "Future Intake": "bg-purple-50 text-purple-700 border-purple-200/60 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20",
-  Unreachable: "bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
-  "No Response": "bg-slate-100 text-slate-700 border-slate-200/60 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20",
-  "Not Potential": "bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
-  "Not Interested": "bg-red-50 text-red-700 border-red-200/60 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
+  New: "bg-sky-700/10 text-sky-700 border-sky-200/60 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20",
+  Hot: "bg-amber-700/10 text-amber-700 border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+  "Future Intake": "bg-purple-700/10 text-purple-700 border-purple-200/60 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20",
+  Unreachable: "bg-rose-700/10 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+  "No Response": "bg-slate-700/10 text-slate-700 border-slate-200/60 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20",
+  "Not Potential": "bg-rose-700/10 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+  "Not Interested": "bg-red-700/10 text-red-700 border-red-200/60 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
 };
+
+const filterClass = (selected: boolean) =>
+  cn(
+    "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary",
+    selected ? "bg-surface text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+  );
 
 const defaultStatusColor = "bg-surface-muted text-muted-foreground border-border";
 
@@ -119,16 +124,10 @@ export function RecentActivity() {
     <Card className="flex flex-col h-full">
       <CardHeader
         icon={Activity}
-        iconBg="bg-primary-soft"
-        iconColor="text-primary"
-        title="Recent Activities"
-        subtitle="Live audit log of applicant status changes and counsellor notes"
+        title="Recent activity"
+        subtitle="Lead status changes and counsellor notes"
         action={
           <div className="flex shrink-0 items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 sm:inline-flex">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Feed
-            </span>
             <button
               type="button"
               onClick={handleDownloadCSV}
@@ -142,90 +141,71 @@ export function RecentActivity() {
         }
       />
 
-      {/* Filter & Search Bar Header */}
-      <div className="flex flex-col gap-2.5 border-b border-border/70 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Filter Pills */}
-        <div className="flex items-center gap-1.5">
-          <Filter className="size-3.5 text-muted-foreground shrink-0" />
-          <span className="text-xs font-medium text-muted-foreground">Filter:</span>
-          <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-0.5">
-            <button
-              type="button"
-              onClick={() => setFilter("all")}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                filter === "all"
-                  ? "bg-surface text-primary shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              All ({activities.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("status-change")}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                filter === "status-change"
-                  ? "bg-surface text-primary shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Status Changes ({statusChangesCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("note-create")}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                filter === "note-create"
-                  ? "bg-surface text-primary shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Notes ({notesCount})
-            </button>
-          </div>
+      {/* Filter & search */}
+      <div className="flex flex-col gap-3 px-6 pb-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div role="group" aria-label="Activity type" className="inline-flex max-w-full gap-0.5 self-start overflow-x-auto rounded-full bg-surface-muted p-0.5">
+          <button
+            type="button"
+            aria-pressed={filter === "all"}
+            onClick={() => setFilter("all")}
+            className={filterClass(filter === "all")}
+          >
+            All
+            <span className={cn("tabular-nums", filter === "all" ? "text-primary" : "text-muted-foreground/80")}>{activities.length}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={filter === "status-change"}
+            onClick={() => setFilter("status-change")}
+            className={filterClass(filter === "status-change")}
+          >
+            Status changes
+            <span className={cn("tabular-nums", filter === "status-change" ? "text-primary" : "text-muted-foreground/80")}>{statusChangesCount}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={filter === "note-create"}
+            onClick={() => setFilter("note-create")}
+            className={filterClass(filter === "note-create")}
+          >
+            Notes
+            <span className={cn("tabular-nums", filter === "note-create" ? "text-primary" : "text-muted-foreground/80")}>{notesCount}</span>
+          </button>
         </div>
 
-        {/* Search Input & Counter */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex items-center w-full sm:w-48">
-            <Search className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search ID, note, actor..."
-              className="h-7 w-full rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3" />
-              </button>
-            )}
-          </div>
-
-          <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap hidden sm:inline">
-            Showing {filteredItems.length} records
-          </span>
+        <div className="relative flex w-full items-center sm:w-52">
+          <Search className="pointer-events-none absolute left-3 size-3.5 text-muted-foreground" />
+          <input
+            type="search"
+            aria-label="Search activity"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search ID, note, counsellor"
+            className="h-8 w-full rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Polished Table Structure with Sticky Header & Smooth Scroll */}
       <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-xs">
-          <thead className="sticky top-0 z-10 bg-surface/95 backdrop-blur-xs border-b border-border/80 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <thead className="sticky top-0 z-10 border-b border-border bg-surface text-muted-foreground">
             <tr>
-              <th className="py-2.5 pl-6 pr-3 font-semibold">Activity</th>
-              <th className="px-3 py-2.5 font-semibold">Lead ID</th>
-              <th className="px-3 py-2.5 font-semibold">Update Details</th>
-              <th className="px-3 py-2.5 font-semibold">Counsellor</th>
-              <th className="py-2.5 pl-3 pr-6 text-right font-semibold">Time</th>
+              <th className="py-2 pl-6 pr-3 font-medium">Activity</th>
+              <th className="px-3 py-2 font-medium">Lead</th>
+              <th className="px-3 py-2 font-medium">Update</th>
+              <th className="px-3 py-2 font-medium">Counsellor</th>
+              <th className="py-2 pl-3 pr-6 text-right font-medium">Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -260,12 +240,12 @@ export function RecentActivity() {
                     {/* Activity Type Badge */}
                     <td className="py-3 pl-6 pr-3 align-middle whitespace-nowrap">
                       {isStatusChange ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200/60 bg-indigo-50/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200/60 bg-indigo-700/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
                           <ArrowRightLeft className="size-3 shrink-0" />
                           <span>Lead Status Change</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/60 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
                           <FileText className="size-3 shrink-0" />
                           <span>Note Create</span>
                         </span>

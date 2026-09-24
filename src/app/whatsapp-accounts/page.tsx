@@ -2,24 +2,26 @@
 
 import { useMemo, useState } from "react";
 import {
-  Filter,
+  ChevronDown,
   Link2,
   MessageSquare,
   Plus,
   QrCode,
   RefreshCw,
-  Search,
   ShieldCheck,
   Smartphone,
   Users2,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import {
   mockWhatsAppAccounts,
   type WhatsAppAccount,
 } from "@/lib/mock/whatsapp-accounts";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function WhatsAppAccountsPage() {
   const [accounts, setAccounts] = useState<WhatsAppAccount[]>(mockWhatsAppAccounts);
@@ -105,163 +107,62 @@ export default function WhatsAppAccountsPage() {
             type="button"
             onClick={handleSyncAll}
             disabled={isSyncing}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground card-shadow transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95 disabled:opacity-50"
+            className={buttonSecondary}
           >
-            <RefreshCw className={cn("size-3.5 text-muted-foreground", isSyncing && "animate-spin")} />
+            <RefreshCw className={cn("size-4 text-muted-foreground", isSyncing && "animate-spin")} />
             <span>{isSyncing ? "Syncing..." : "Sync All"}</span>
           </button>
           <button
             type="button"
             onClick={() => setConnectModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Connect Number</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Connected Lines</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-              <Smartphone className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">
-              {totalConnected} / {accounts.length}
-            </span>
-            <span className="text-xs font-medium text-emerald-600">Active</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Across UK & Bangladesh regional hubs</p>
-        </Card>
+      <StatGrid>
+        <StatCard icon={Smartphone} tone="success" label="Connected lines" value={`${totalConnected} / ${accounts.length}`} note="Active" />
+        <StatCard icon={MessageSquare} label="Today's messages" value={totalMessagesToday.toLocaleString()} note="In & out" />
+        <StatCard icon={Users2} tone="violet" label="Inquiries logged" value={totalConversations.toLocaleString()} note="All-time" />
+        <StatCard icon={ShieldCheck} tone="teal" label="API health" value="100%" note="Meta verified" />
+      </StatGrid>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Today&apos;s Messages</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <MessageSquare className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">
-              {totalMessagesToday.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-primary">Inbound & Out</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Student chats logged today</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Inquiries Logged</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
-              <Users2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">
-              {totalConversations.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">All-time</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Across all connected hotlines</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">API Health & Verified</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
-              <ShieldCheck className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">100%</span>
-            <span className="text-xs font-medium text-emerald-600">Meta Verified</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Green badge status confirmed</p>
-        </Card>
-      </div>
+      {/* Filter Bar */}
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search hotline or counsellor…" label="Search accounts" />
+        <SelectFilter
+          label="Status"
+          allLabel="All statuses"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: "connected", label: "Connected" },
+            { value: "qr_required", label: "QR required" },
+            { value: "disconnected", label: "Disconnected" },
+            { value: "syncing", label: "Syncing" },
+          ].map((o) => ({ ...o, hint: accounts.filter((a) => a.status === o.value).length }))}
+        />
+        {(search || statusFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setStatusFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Accounts Directory Card */}
       <Card className="flex flex-col">
         <CardHeader
           icon={Link2}
-          iconBg="bg-primary-soft"
-          iconColor="text-primary"
           title="Linked Phone Numbers & Hotlines"
-          subtitle="Real-time connectivity status, counselor assignments, and automated lead ingestion"
-          action={
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Showing {filteredAccounts.length} accounts
-              </span>
-            </div>
-          }
+          subtitle={`${filteredAccounts.length} account${filteredAccounts.length === 1 ? "" : "s"} match your filters`}
         />
-
-        {/* Filter Bar */}
-        <div className="flex flex-col gap-2.5 border-b border-border/70 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Filter className="size-3.5 text-muted-foreground shrink-0" />
-            <span className="text-xs font-medium text-muted-foreground">Filter:</span>
-            <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-0.5">
-              <button
-                type="button"
-                onClick={() => setStatusFilter("")}
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                  statusFilter === "" ? "bg-surface text-primary shadow-xs" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                All ({accounts.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter("connected")}
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                  statusFilter === "connected" ? "bg-surface text-primary shadow-xs" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                Connected ({totalConnected})
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter("qr_required")}
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                  statusFilter === "qr_required" ? "bg-surface text-primary shadow-xs" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                QR Required (1)
-              </button>
-            </div>
-          </div>
-
-          <div className="relative flex items-center w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search hotline or counselor..."
-              className="h-7 w-full rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3" />
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Accounts Table */}
         <div className="overflow-x-auto">
@@ -281,7 +182,7 @@ export default function WhatsAppAccountsPage() {
                 <tr key={acc.id} className="group transition-colors hover:bg-surface-muted/40">
                   <td className="py-3.5 pl-6 pr-3 align-middle">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
                         <Smartphone className="size-4" />
                       </div>
                       <div className="min-w-0">
@@ -300,21 +201,21 @@ export default function WhatsAppAccountsPage() {
 
                   <td className="px-3 py-3.5 align-middle">
                     {acc.status === "connected" ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-success/20 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
+                        <span className="size-1.5 rounded-full bg-success animate-pulse" />
                         Connected
                       </span>
                     ) : acc.status === "qr_required" ? (
                       <button
                         type="button"
                         onClick={() => setSelectedForQr(acc)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-700/10 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-700/15 dark:bg-amber-500/10 dark:text-amber-400"
                       >
                         <QrCode className="size-3" />
                         Scan QR Code
                       </button>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-700/10 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">
                         Disconnected
                       </span>
                     )}
@@ -386,7 +287,7 @@ export default function WhatsAppAccountsPage() {
           <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-6 card-shadow">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-success/10 text-success">
                   <QrCode className="size-4" />
                 </span>
                 <div>
@@ -405,7 +306,9 @@ export default function WhatsAppAccountsPage() {
 
             <form onSubmit={handleCreateAccount} className="mt-4 flex flex-col gap-4">
               <div>
-                <label className="text-xs font-semibold text-foreground">Line / Branch Label</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Line / Branch Label <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -419,17 +322,22 @@ export default function WhatsAppAccountsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground">Region</label>
-                  <select
-                    value={newAccountCountry}
-                    onChange={(e) => setNewAccountCountry(e.target.value as "UK" | "Bangladesh")}
-                    className="mt-1.5 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="Bangladesh">Bangladesh (+880)</option>
-                    <option value="UK">United Kingdom (+44)</option>
-                  </select>
+                  <div className="relative mt-1.5">
+                    <select
+                      value={newAccountCountry}
+                      onChange={(e) => setNewAccountCountry(e.target.value as "UK" | "Bangladesh")}
+                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="Bangladesh">Bangladesh (+880)</option>
+                      <option value="UK">United Kingdom (+44)</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground">Phone Number</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Phone Number <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -449,7 +357,7 @@ export default function WhatsAppAccountsPage() {
                     <div className="bg-white col-span-2 row-span-1 rounded-xs" />
                     <div className="bg-white col-span-2 row-span-2 rounded-xs" />
                     <div className="bg-white col-span-1 row-span-2 rounded-xs" />
-                    <div className="bg-emerald-500 col-span-2 row-span-2 rounded-xs animate-pulse" />
+                    <div className="bg-success col-span-2 row-span-2 rounded-xs animate-pulse" />
                     <div className="bg-white col-span-3 row-span-1 rounded-xs" />
                   </div>
                 </div>
@@ -465,13 +373,13 @@ export default function WhatsAppAccountsPage() {
                 <button
                   type="button"
                   onClick={() => setConnectModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Confirm & Link Line
                 </button>
@@ -494,7 +402,7 @@ export default function WhatsAppAccountsPage() {
                 <X className="size-4" />
               </button>
             </div>
-            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-600/10 text-amber-600">
               <QrCode className="size-6" />
             </div>
             <h3 className="mt-3 text-base font-bold text-foreground">Re-Authenticate WhatsApp</h3>
@@ -520,7 +428,7 @@ export default function WhatsAppAccountsPage() {
                 );
                 setSelectedForQr(null);
               }}
-              className="mt-5 w-full rounded-full bg-emerald-600 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700"
+              className="mt-5 w-full rounded-full bg-success py-2.5 text-xs font-semibold text-white hover:bg-success/90"
             >
               Simulate QR Scanned & Connected
             </button>

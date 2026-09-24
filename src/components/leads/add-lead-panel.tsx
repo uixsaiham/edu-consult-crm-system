@@ -13,6 +13,8 @@ import {
   initialsFor,
   type LeadRow,
 } from "@/lib/mock/leads";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
+import { cn } from "@/lib/utils";
 
 const emptyForm = {
   name: "",
@@ -79,7 +81,7 @@ export function AddLeadPanel({
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+            className={buttonSecondary}
           >
             Cancel
           </button>
@@ -87,7 +89,7 @@ export function AddLeadPanel({
             type="button"
             onClick={handleSubmit}
             disabled={!isValid}
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className={cn(buttonPrimary, "disabled:cursor-not-allowed")}
           >
             Add Lead
           </button>

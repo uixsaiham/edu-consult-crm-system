@@ -35,6 +35,8 @@ import {
   type PersonalDetailsData,
   type WorkExperienceEntry,
 } from "@/lib/mock/applications";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
+import { cn } from "@/lib/utils";
 
 const steps: WizardStepMeta[] = [
   { key: "personal", label: "Personal Details", description: "Applicant bio & contact", icon: UserRound },
@@ -304,9 +306,9 @@ export function ApplicationWizard() {
                     type="button"
                     onClick={goPrev}
                     disabled={stepIndex === 0}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
+                    className={cn(buttonSecondary, "disabled:cursor-not-allowed")}
                   >
-                    <ArrowLeft className="size-3.5" />
+                    <ArrowLeft className="size-4" />
                     Previous
                   </button>
 
@@ -327,7 +329,7 @@ export function ApplicationWizard() {
                         type="button"
                         onClick={handleSubmit}
                         disabled={!isValid(6)}
-                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                        className={cn(buttonPrimary, "disabled:cursor-not-allowed")}
                       >
                         Submit Application
                       </button>
@@ -336,7 +338,7 @@ export function ApplicationWizard() {
                         type="button"
                         onClick={goNext}
                         disabled={!currentStep.optional && !isValid(stepIndex)}
-                        className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                        className={cn(buttonPrimary, "disabled:cursor-not-allowed")}
                       >
                         Save &amp; Continue
                       </button>

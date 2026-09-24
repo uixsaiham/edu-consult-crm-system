@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CheckCircle2, FilePlus2, ListChecks } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export function SuccessScreen({
   referenceId,
@@ -15,7 +16,7 @@ export function SuccessScreen({
 }) {
   return (
     <Card className="flex flex-col items-center gap-5 px-6 py-16 text-center sm:px-10">
-      <span className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-success to-emerald-600 text-white shadow-[0_10px_30px_-8px_rgba(16,185,129,0.55)]">
+      <span className="flex size-16 items-center justify-center rounded-full bg-success text-white shadow-[0_10px_30px_-8px_rgba(69,195,72,0.55)]">
         <CheckCircle2 className="size-8" />
       </span>
       <div>
@@ -34,7 +35,7 @@ export function SuccessScreen({
       <div className="mt-2 flex flex-col gap-2.5 sm:flex-row">
         <Link
           href="/applications"
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-hover active:scale-95"
+          className={buttonPrimary}
         >
           <ListChecks className="size-4" />
           View Applications
@@ -42,7 +43,7 @@ export function SuccessScreen({
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-surface-hover active:scale-95"
+          className={buttonSecondary}
         >
           <FilePlus2 className="size-4" />
           Add Another Application

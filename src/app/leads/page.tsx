@@ -17,7 +17,15 @@ import {
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
-import { Select } from "@/components/ui/form-controls";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import {
+  anyDate,
+  DateRangeFilter,
+  FilterDropdown,
+  FilterOptions,
+  inDateRange,
+  type DateRange,
+} from "@/components/ui/filter-dropdown";
 import { AddLeadPanel } from "@/components/leads/add-lead-panel";
 import { AssignLeadPanel } from "@/components/leads/assign-lead-panel";
 import { LeadDetailsPanel } from "@/components/leads/lead-details-panel";
@@ -30,7 +38,9 @@ import {
   leadStatusStyles,
   type LeadRow,
 } from "@/lib/mock/leads";
+import { operationsSnapshotDate } from "@/lib/mock/applications";
 import { cn } from "@/lib/utils";
+import { buttonPrimary } from "@/components/ui/button-styles";
 
 const avatarPalette = [
   "bg-primary-soft text-primary",
@@ -53,7 +63,15 @@ function formatDate(iso: string) {
   });
 }
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 25;
+
+// "Today" for date presets matches the snapshot date used across the mock data.
+const today = operationsSnapshotDate;
+
+const assignmentOptions = [
+  { value: "unassigned", label: "Unassigned only" },
+  { value: "assigned", label: "Assigned only" },
+];
 
 export default function LeadsPage() {
   return <Suspense fallback={<p className="p-6 text-muted-foreground">Loading leads…</p>}><LeadsFromDashboard /></Suspense>;
@@ -72,7 +90,9 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const [branchFilter, setBranchFilter] = useState("");
   const [counsellorFilter, setCounsellorFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [unassignedOnly, setUnassignedOnly] = useState(false);
+  const [assignment, setAssignment] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateRange>(anyDate);
 
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -83,7 +103,17 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const [assigning, setAssigning] = useState<LeadRow[] | null>(null);
   const [viewing, setViewing] = useState<LeadRow | null>(null);
 
-  const hasFilters = !!(search || countryFilter || branchFilter || counsellorFilter || statusFilter || unassignedOnly);
+  const hasFilters = !!(
+    search ||
+    countryFilter ||
+    branchFilter ||
+    counsellorFilter ||
+    statusFilter ||
+    assignment ||
+    sourceFilter ||
+    dateFilter.from ||
+    dateFilter.to
+  );
 
   function resetFilters() {
     setSearch("");
@@ -91,7 +121,9 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
     setBranchFilter("");
     setCounsellorFilter("");
     setStatusFilter("");
-    setUnassignedOnly(false);
+    setAssignment("");
+    setSourceFilter("");
+    setDateFilter(anyDate);
     setPage(1);
   }
 
@@ -101,7 +133,10 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
     if (branchFilter) list = list.filter((l) => l.branch === branchFilter);
     if (counsellorFilter) list = list.filter((l) => l.counsellor === counsellorFilter);
     if (statusFilter) list = list.filter((l) => l.status === statusFilter);
-    if (unassignedOnly) list = list.filter((l) => !l.counsellor);
+    if (assignment === "unassigned") list = list.filter((l) => !l.counsellor);
+    if (assignment === "assigned") list = list.filter((l) => !!l.counsellor);
+    if (sourceFilter) list = list.filter((l) => l.leadSource === sourceFilter);
+    list = list.filter((l) => inDateRange(l.createdDate, dateFilter));
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       list = list.filter(
@@ -113,7 +148,24 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
       );
     }
     return list;
-  }, [leads, search, countryFilter, branchFilter, counsellorFilter, statusFilter, unassignedOnly]);
+  }, [leads, search, countryFilter, branchFilter, counsellorFilter, statusFilter, assignment, sourceFilter, dateFilter]);
+
+  // Options for the Source filter come from the leads themselves, with counts.
+  const sourceOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const l of leads) if (l.leadSource) counts.set(l.leadSource, (counts.get(l.leadSource) ?? 0) + 1);
+    return [...counts.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, hint: count }));
+  }, [leads]);
+
+  function applyFilter(setter: (v: string) => void, close: () => void) {
+    return (v: string) => {
+      setter(v);
+      setPage(1);
+      close();
+    };
+  }
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
@@ -123,6 +175,7 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const newCount = leads.filter((l) => l.status === "New").length;
   const unassignedCount = leads.filter((l) => !l.counsellor).length;
   const convertedCount = leads.filter((l) => l.status === "Converted").length;
+  const pct = (n: number) => (total > 0 ? `${Math.round((n / total) * 100)}%` : undefined);
 
   const allOnPageSelected = pageItems.length > 0 && pageItems.every((l) => selected.has(l.id));
 
@@ -201,11 +254,11 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">All Leads</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">All leads</h2>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
             Track, filter, and assign every incoming lead to a counsellor.
           </p>
         </div>
@@ -213,68 +266,38 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+          className={buttonPrimary}
         >
           <Plus className="size-4" />
-          Add Lead
+          Add lead
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 card-shadow">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
-            <Users2 className="size-4" />
-          </span>
-          <div className="mt-3">
-            <p className="text-2xl font-bold tabular-nums text-foreground">{total.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Total Leads</p>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 card-shadow">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
-            <Sparkles className="size-4" />
-          </span>
-          <div className="mt-3">
-            <p className="text-2xl font-bold tabular-nums text-foreground">{newCount.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">New Leads</p>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 card-shadow">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-danger-soft text-danger">
-            <UserCog className="size-4" />
-          </span>
-          <div className="mt-3">
-            <p className="text-2xl font-bold tabular-nums text-foreground">{unassignedCount.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Unassigned</p>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between rounded-2xl border border-border bg-surface p-4 card-shadow">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400">
-            <CheckCircle2 className="size-4" />
-          </span>
-          <div className="mt-3">
-            <p className="text-2xl font-bold tabular-nums text-foreground">{convertedCount.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Converted</p>
-          </div>
-        </div>
-      </div>
+      <StatGrid>
+        <StatCard icon={Users2} label="Total leads" value={total.toLocaleString()} />
+        <StatCard icon={Sparkles} tone="success" label="New leads" value={newCount.toLocaleString()} note={pct(newCount)} />
+        <StatCard icon={UserCog} tone="danger" label="Unassigned" value={unassignedCount.toLocaleString()} note={pct(unassignedCount)} />
+        <StatCard icon={CheckCircle2} tone="teal" label="Converted" value={convertedCount.toLocaleString()} note={pct(convertedCount)} />
+      </StatGrid>
 
-      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-border bg-surface p-3 card-shadow">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-3 card-shadow">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            aria-label="Search leads"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search name, email, phone, ID..."
-            className="h-10 w-56 rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+            placeholder="Search name, email, phone, ID…"
+            className="h-9 w-60 rounded-lg border border-border bg-surface pl-9 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
           {search && (
             <button
               type="button"
+              aria-label="Clear search"
               onClick={() => setSearch("")}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
@@ -283,101 +306,140 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
           )}
         </div>
 
-        <div className="w-36">
-          <Select
-            value={countryFilter}
-            onChange={(e) => {
-              setCountryFilter(e.target.value);
-              setPage(1);
-            }}
-            className="text-xs"
-          >
-            <option value="">All Countries</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="w-36">
-          <Select
-            value={branchFilter}
-            onChange={(e) => {
-              setBranchFilter(e.target.value);
-              setPage(1);
-            }}
-            className="text-xs"
-          >
-            <option value="">All Branches</option>
-            {branches.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="w-40">
-          <Select
-            value={counsellorFilter}
-            onChange={(e) => {
-              setCounsellorFilter(e.target.value);
-              setPage(1);
-            }}
-            className="text-xs"
-          >
-            <option value="">All Counsellors</option>
-            {counsellors.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="w-36">
-          <Select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="text-xs"
-          >
-            <option value="">All Statuses</option>
-            {leadStatuses.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setUnassignedOnly((v) => !v);
+        <DateRangeFilter
+          today={today}
+          value={dateFilter}
+          onChange={(v) => {
+            setDateFilter(v);
             setPage(1);
           }}
-          aria-pressed={unassignedOnly}
-          className={cn(
-            "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all",
-            unassignedOnly
-              ? "border-danger/30 bg-danger-soft text-danger"
-              : "border-border bg-surface text-muted-foreground hover:text-foreground"
-          )}
+        />
+
+        <FilterDropdown
+          label="Country"
+          valueLabel={countryFilter || undefined}
+          onClear={() => {
+            setCountryFilter("");
+            setPage(1);
+          }}
         >
-          <UserCog className="size-3.5" />
-          Unassigned Only
-        </button>
+          {(close) => (
+            <FilterOptions
+              searchable
+              allLabel="All countries"
+              value={countryFilter}
+              options={countries.map((c) => ({ value: c, label: c }))}
+              onSelect={applyFilter(setCountryFilter, close)}
+            />
+          )}
+        </FilterDropdown>
+
+        <FilterDropdown
+          label="Branch"
+          valueLabel={branchFilter || undefined}
+          onClear={() => {
+            setBranchFilter("");
+            setPage(1);
+          }}
+        >
+          {(close) => (
+            <FilterOptions
+              allLabel="All branches"
+              value={branchFilter}
+              options={branches.map((b) => ({ value: b, label: b }))}
+              onSelect={applyFilter(setBranchFilter, close)}
+            />
+          )}
+        </FilterDropdown>
+
+        <FilterDropdown
+          label="Counsellor"
+          valueLabel={counsellorFilter || undefined}
+          onClear={() => {
+            setCounsellorFilter("");
+            setPage(1);
+          }}
+        >
+          {(close) => (
+            <FilterOptions
+              searchable={counsellors.length > 8}
+              allLabel="All counsellors"
+              value={counsellorFilter}
+              options={counsellors.map((c) => ({ value: c, label: c }))}
+              onSelect={applyFilter(setCounsellorFilter, close)}
+            />
+          )}
+        </FilterDropdown>
+
+        <FilterDropdown
+          label="Status"
+          valueLabel={statusFilter || undefined}
+          onClear={() => {
+            setStatusFilter("");
+            setPage(1);
+          }}
+        >
+          {(close) => (
+            <FilterOptions
+              allLabel="All statuses"
+              value={statusFilter}
+              options={leadStatuses.map((st) => ({
+                value: st,
+                label: st,
+                hint: leads.filter((l) => l.status === st).length,
+              }))}
+              onSelect={applyFilter(setStatusFilter, close)}
+            />
+          )}
+        </FilterDropdown>
+
+        <FilterDropdown
+          label="Unassigned"
+          valueLabel={assignmentOptions.find((o) => o.value === assignment)?.label}
+          activeText={assignmentOptions.find((o) => o.value === assignment)?.label}
+          onClear={() => {
+            setAssignment("");
+            setPage(1);
+          }}
+        >
+          {(close) => (
+            <FilterOptions
+              allLabel="All leads"
+              value={assignment}
+              options={assignmentOptions.map((o) => ({
+                ...o,
+                hint: leads.filter((l) => (o.value === "unassigned" ? !l.counsellor : !!l.counsellor)).length,
+              }))}
+              onSelect={applyFilter(setAssignment, close)}
+            />
+          )}
+        </FilterDropdown>
+
+        <FilterDropdown
+          label="Source"
+          valueLabel={sourceFilter || undefined}
+          onClear={() => {
+            setSourceFilter("");
+            setPage(1);
+          }}
+          width="w-72"
+        >
+          {(close) => (
+            <FilterOptions
+              searchable
+              allLabel="All sources"
+              value={sourceFilter}
+              options={sourceOptions}
+              onSelect={applyFilter(setSourceFilter, close)}
+            />
+          )}
+        </FilterDropdown>
 
         {hasFilters && (
           <button
             type="button"
             onClick={resetFilters}
-            className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
             <RotateCcw className="size-3.5" />
             Reset
@@ -420,9 +482,9 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
               <button
                 type="button"
                 onClick={() => setAssigning(selectedLeads)}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+                className={buttonPrimary}
               >
-                <UserCog className="size-3.5" />
+                <UserCog className="size-4" />
                 Assign to Counsellor
               </button>
               <button

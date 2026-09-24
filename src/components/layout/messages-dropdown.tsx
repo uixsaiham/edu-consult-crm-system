@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { getConversations, type ConversationItem } from "@/lib/mock/notifications";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useClickOutside } from "@/lib/use-click-outside";
 import { cn } from "@/lib/utils";
 
@@ -21,20 +22,22 @@ export function MessagesDropdown() {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Messages"
-        aria-expanded={open}
-        className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
-      >
-        <MessageCircle className="size-[17px]" />
-        {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-none text-primary-foreground ring-2 ring-surface-muted">
-            {unreadCount}
-          </span>
-        )}
-      </button>
+      <Tooltip label="Messages" hidden={open}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Messages"
+          aria-expanded={open}
+          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+        >
+          <MessageCircle className="size-[17px]" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold leading-none text-primary-foreground ring-2 ring-surface-muted">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl animate-fade-in">

@@ -18,6 +18,14 @@ export interface CountryRecord {
   completedLeads: number;
   rejectedLeads: number;
   isActive: boolean;
+  // Destination profile, captured when a country is added.
+  monthlyLivingCost?: number;
+  flagImage?: string;
+  bannerImage?: string;
+  visaRequirements?: string;
+  partTimeWork?: string;
+  accommodation?: string;
+  benefits?: string;
 }
 
 export interface InstitutionRecord {

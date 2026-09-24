@@ -6,6 +6,7 @@ import { SlideOver } from "@/components/ui/slide-over";
 import { Field, Select } from "@/components/ui/form-controls";
 import { branches, counsellors, type LeadRow } from "@/lib/mock/leads";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 function uniqueValue(leads: LeadRow[], pick: (l: LeadRow) => string) {
   const values = new Set(leads.map(pick).filter(Boolean));
@@ -47,7 +48,7 @@ export function AssignLeadPanel({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+            className={buttonSecondary}
           >
             Cancel
           </button>
@@ -55,7 +56,7 @@ export function AssignLeadPanel({
             type="button"
             onClick={handleSave}
             disabled={!isValid}
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className={cn(buttonPrimary, "disabled:cursor-not-allowed")}
           >
             {isBulk ? `Assign ${list.length} Leads` : "Assign"}
           </button>

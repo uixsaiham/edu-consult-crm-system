@@ -5,10 +5,6 @@ import {
   ArrowRight,
   BarChart3,
   CalendarRange,
-  CheckCircle2,
-  FileCheck2,
-  FileText,
-  Send,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
@@ -35,8 +31,6 @@ interface StageConfig {
   name: string;
   color: string;
   fill: string;
-  icon: typeof Send;
-  bgSoft: string;
 }
 
 const stages: StageConfig[] = [
@@ -45,32 +39,24 @@ const stages: StageConfig[] = [
     name: "Submitted",
     color: "var(--primary)",
     fill: "url(#intake-submitted)",
-    icon: Send,
-    bgSoft: "bg-primary-soft text-primary",
   },
   {
     key: "offer",
     name: "Offer Received",
     color: "#f59e0b",
     fill: "url(#intake-offer)",
-    icon: FileText,
-    bgSoft: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
   },
   {
     key: "visaFiled",
     name: "Visa Filed",
     color: "#0ea5e9",
     fill: "url(#intake-visaFiled)",
-    icon: FileCheck2,
-    bgSoft: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
   },
   {
     key: "enrolled",
     name: "Enrolled",
     color: "var(--success)",
     fill: "url(#intake-enrolled)",
-    icon: CheckCircle2,
-    bgSoft: "bg-success-soft text-success",
   },
 ];
 
@@ -156,10 +142,8 @@ export function IntakeOverview() {
     <Card className="flex flex-col">
       <CardHeader
         icon={CalendarRange}
-        iconBg="bg-warning-soft"
-        iconColor="text-warning"
-        title="Intake Application Pipeline"
-        subtitle="Applicant progression across academic intakes"
+        title="Intake pipeline"
+        subtitle="Stage progress for each intake"
         action={
           <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
             <button
@@ -196,88 +180,42 @@ export function IntakeOverview() {
         }
       />
 
-      {/* Interactive Intake Period Cards / Tabs */}
-      <div className="grid grid-cols-2 gap-2.5 px-5 pt-4 sm:grid-cols-4">
-        {periods.map((p) => {
-          const isSelected = p.id === selectedIntakeId;
-          const isCurrent = p.tag === "current";
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setSelectedIntakeId(p.id)}
-              className={cn(
-                "group relative flex flex-col justify-between rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5",
-                isSelected
-                  ? "border-primary bg-primary-soft/50 shadow-sm ring-2 ring-primary/20"
-                  : "border-border bg-surface hover:border-border-strong hover:bg-surface-muted/50"
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
-                    isCurrent
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-surface-muted text-muted-foreground group-hover:text-foreground"
-                  )}
-                >
-                  {isCurrent && <span className="size-1.5 rounded-full bg-white animate-pulse" />}
-                  {p.label}
-                </span>
-              </div>
-
-              <div className="mt-2">
-                <p className="truncate text-xs font-bold tracking-tight text-foreground sm:text-sm">{p.month}</p>
-                <div className="mt-0.5 flex items-baseline gap-1">
-                  <span className="text-base font-bold text-foreground tabular-nums sm:text-lg">
-                    {p.applications.toLocaleString()}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">apps</span>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Stage KPI Progression Banner for Selected Intake */}
-      <div className="mx-5 mt-3.5 grid grid-cols-2 gap-2 rounded-xl border border-border/80 bg-surface-muted/40 p-2 sm:grid-cols-4">
-        {stages.map((st, i) => {
-          const val = activeBreakdown.data[st.key];
-          const subVal = activeBreakdown.data.submitted;
-          const rate = subVal > 0 ? Math.round((val / subVal) * 100) : 0;
-          const Icon = st.icon;
-
-          return (
-            <div key={st.key} className="flex items-center gap-2 rounded-lg bg-surface p-2 card-shadow min-w-0">
-              <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-md", st.bgSoft)}>
-                <Icon className="size-3.5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[10px] font-medium text-muted-foreground">{st.name}</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-foreground tabular-nums">
-                    {val.toLocaleString()}
-                  </span>
-                  {i > 0 && (
-                    <span className="text-[10px] font-semibold text-muted-foreground tabular-nums">
-                      ({rate}%)
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* Intake tabs — full width; the current intake is marked with a dot */}
+      <div className="px-6 pt-5">
+        <div role="tablist" aria-label="Intake" className="flex w-full gap-1 rounded-full bg-surface-muted p-1">
+          {periods.map((p) => {
+            const isSelected = p.id === selectedIntakeId;
+            const isCurrent = p.tag === "current";
+            const [month, year] = p.month.split(" ");
+            return (
+              <button
+                key={p.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                title={isCurrent ? "Current intake" : undefined}
+                onClick={() => setSelectedIntakeId(p.id)}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary",
+                  isSelected ? "bg-surface text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
+                  isCurrent && "font-semibold text-primary"
+                )}
+              >
+                {isCurrent && <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />}
+                {month.slice(0, 3)} {year}
+                {isCurrent && <span className="sr-only">(current intake)</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Chart Visualization */}
-      <div className="px-3 pb-5 pt-4 sm:px-5">
+      <div className="flex flex-1 flex-col px-6 pb-6 pt-4">
         {viewMode === "funnel" ? (
           /* Intake Funnel Flow View */
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between px-2">
+            <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-semibold text-foreground">
                   {activeBreakdown.period.month} Conversion Pipeline
@@ -286,7 +224,7 @@ export function IntakeOverview() {
                   Funnel attrition from submission to student enrollment
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
                 <Sparkles className="size-3.5" />
                 {activeBreakdown.convRate}% Overall Conversion
               </span>
@@ -294,7 +232,7 @@ export function IntakeOverview() {
 
             <div className="h-52 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={funnelData} margin={{ top: 15, right: 24, left: 10, bottom: 0 }}>
+                <AreaChart data={funnelData} margin={{ top: 15, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="funnelFlowGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.45} />
@@ -365,12 +303,12 @@ export function IntakeOverview() {
             </div>
           </div>
         ) : (
-          /* Grouped Bar Chart Comparison */
-          <div className="h-64 w-full">
+          /* Grouped Bar Chart Comparison — grows to fill the card */
+          <div className="min-h-64 w-full flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={breakdown}
-                margin={{ top: 10, right: 12, left: -14, bottom: 0 }}
+                margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
                 barGap={4}
                 barCategoryGap="22%"
               >
@@ -399,6 +337,7 @@ export function IntakeOverview() {
                 />
                 <Tooltip content={<IntakeCustomTooltip />} cursor={{ fill: "var(--surface-hover)", radius: 8 }} />
                 <Legend
+                  align="left"
                   wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)", paddingTop: 16 }}
                   iconType="circle"
                   iconSize={8}

@@ -4,6 +4,7 @@ import { Building2, Calendar, Mail, MapPin, Phone, Radar, StickyNote, User, User
 import { SlideOver } from "@/components/ui/slide-over";
 import { leadStatusStyles, type LeadRow } from "@/lib/mock/leads";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 function Row({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
   return (
@@ -44,16 +45,16 @@ export function LeadDetailsPanel({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+            className={buttonSecondary}
           >
             Close
           </button>
           <button
             type="button"
             onClick={() => onAssign(lead)}
-            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary-hover active:scale-95"
+            className={buttonPrimary}
           >
-            <UserCog className="size-3.5" />
+            <UserCog className="size-4" />
             {lead.counsellor ? "Reassign" : "Assign"} Counsellor
           </button>
         </div>

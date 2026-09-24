@@ -4,17 +4,18 @@ import { useMemo, useState } from "react";
 import {
   BookOpen,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Coins,
-  Filter,
   GraduationCap,
   Plus,
-  Search,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockCourses, type CourseRecord } from "@/lib/mock/directory";
-import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<CourseRecord[]>(mockCourses);
@@ -92,144 +93,65 @@ export default function CoursesPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Add Course</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Catalog</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
-              <BookOpen className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{courses.length}</span>
-            <span className="text-xs font-medium text-purple-600">Active Degrees</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Across partner institutions</p>
-        </Card>
+      <StatGrid>
+        <StatCard icon={BookOpen} tone="violet" label="Total catalog" value={courses.length} note="Active degrees" />
+        <StatCard icon={GraduationCap} label="Postgraduate" value={pgCount} note="MSc · MBA · LLM" />
+        <StatCard icon={CheckCircle2} tone="success" label="Undergraduate" value={ugCount} note="BSc · BEng · BA" />
+        <StatCard icon={Coins} tone="warning" label="Avg annual tuition" value={`£${avgFee.toLocaleString()}`} />
+      </StatGrid>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Postgraduate (Master&apos;s)</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <GraduationCap className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{pgCount}</span>
-            <span className="text-xs font-medium text-primary">MSc / MBA / LLM</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Highest demand student level</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Undergraduate Degrees</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-              <CheckCircle2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{ugCount}</span>
-            <span className="text-xs font-medium text-emerald-600">BSc / BEng / BA</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">3-4 Year degree programs</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Average Annual Tuition</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
-              <Coins className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">£{avgFee.toLocaleString()}</span>
-            <span className="text-xs font-medium text-amber-600">GBP Benchmark</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Pre-scholarship tuition fee average</p>
-        </Card>
-      </div>
+      {/* Filter Bar */}
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search course or university…" label="Search courses" />
+        <SelectFilter
+          label="Level"
+          allLabel="All levels"
+          value={levelFilter}
+          onChange={setLevelFilter}
+          options={["Postgraduate", "Undergraduate", "Foundation"].map((l) => ({
+            value: l,
+            label: l,
+            hint: courses.filter((c) => c.level === l).length,
+          }))}
+        />
+        <SelectFilter
+          label="Faculty"
+          allLabel="All faculties"
+          value={facultyFilter}
+          onChange={setFacultyFilter}
+          options={["Computing & IT", "Business & Management", "Engineering", "Law", "Health Sciences"].map((f) => ({
+            value: f,
+            label: f,
+            hint: courses.filter((c) => c.faculty === f).length,
+          }))}
+        />
+        {(search || levelFilter || facultyFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setLevelFilter("");
+              setFacultyFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Course Catalog Table Card */}
       <Card className="flex flex-col">
         <CardHeader
           icon={BookOpen}
-          iconBg="bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
-          iconColor="text-purple-600"
           title="Degree & Course Catalog"
-          subtitle="Program requirements, tuition fees, faculty classifications, and intake windows"
-          action={
-            <span className="text-xs font-medium text-muted-foreground">
-              Showing {filtered.length} courses
-            </span>
-          }
+          subtitle={`${filtered.length} course${filtered.length === 1 ? "" : "s"} match your filters`}
         />
-
-        {/* Filter Bar */}
-        <div className="flex flex-col gap-2.5 border-b border-border/70 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Filter className="size-3.5 text-muted-foreground shrink-0" />
-            <span className="text-xs font-medium text-muted-foreground">Level:</span>
-            <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-0.5">
-              {["", "Postgraduate", "Undergraduate", "Foundation"].map((lvl) => (
-                <button
-                  key={lvl || "all"}
-                  type="button"
-                  onClick={() => setLevelFilter(lvl)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                    levelFilter === lvl ? "bg-surface text-primary shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {lvl || "All Levels"}
-                </button>
-              ))}
-            </div>
-
-            <select
-              value={facultyFilter}
-              onChange={(e) => setFacultyFilter(e.target.value)}
-              aria-label="Filter by Faculty"
-              className="h-7 rounded-full border border-border bg-surface px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
-            >
-              <option value="">All Faculties</option>
-              <option value="Computing & IT">Computing & IT</option>
-              <option value="Business & Management">Business & Management</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Law">Law</option>
-              <option value="Health Sciences">Health Sciences</option>
-            </select>
-          </div>
-
-          <div className="relative flex items-center w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search course title or uni..."
-              className="h-7 w-full rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3" />
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
@@ -324,7 +246,9 @@ export default function CoursesPage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-3">
               <div>
-                <label className="text-xs font-semibold text-foreground">Course Title</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Course Title <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -348,29 +272,35 @@ export default function CoursesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground">Study Level</label>
-                  <select
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value as CourseRecord["level"])}
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="Postgraduate">Postgraduate</option>
-                    <option value="Undergraduate">Undergraduate</option>
-                    <option value="Foundation">Foundation</option>
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value as CourseRecord["level"])}
+                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="Postgraduate">Postgraduate</option>
+                      <option value="Undergraduate">Undergraduate</option>
+                      <option value="Foundation">Foundation</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground">Faculty</label>
-                  <select
-                    value={faculty}
-                    onChange={(e) => setFaculty(e.target.value as CourseRecord["faculty"])}
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="Computing & IT">Computing & IT</option>
-                    <option value="Business & Management">Business & Management</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Law">Law</option>
-                    <option value="Health Sciences">Health Sciences</option>
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      value={faculty}
+                      onChange={(e) => setFaculty(e.target.value as CourseRecord["faculty"])}
+                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="Computing & IT">Computing & IT</option>
+                      <option value="Business & Management">Business & Management</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Law">Law</option>
+                      <option value="Health Sciences">Health Sciences</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
@@ -410,13 +340,13 @@ export default function CoursesPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Save Program
                 </button>

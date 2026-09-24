@@ -4,16 +4,17 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   Download,
-  Filter,
   GraduationCap,
   RotateCcw,
-  Search,
   ShieldCheck,
   UserX,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockArchivedRecords, type ArchivedRecord } from "@/lib/mock/system";
 import { cn } from "@/lib/utils";
+import { buttonSecondary } from "@/components/ui/button-styles";
 
 export default function ArchivedPage() {
   const [records, setRecords] = useState<ArchivedRecord[]>(mockArchivedRecords);
@@ -61,139 +62,54 @@ export default function ArchivedPage() {
         <div className="flex shrink-0 items-center gap-2.5">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground shadow-xs hover:bg-muted active:scale-95"
+            className={buttonSecondary}
           >
-            <Download className="size-3.5" />
+            <Download className="size-4" />
             <span>Export Archive Audit Log</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Archived Vault</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Archive className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {records.length}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Historical Entries</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Graduated Alumni</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <GraduationCap className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {graduatedCount}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Successfully Completed</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Purged Dormant Leads</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
-              <UserX className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {dormantCount}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">&gt; 12M Inactive</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Statutory Retention</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <ShieldCheck className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              100%
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">GDPR Compliant</span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Archive} label="Total archived" value={records.length} note="Entries" />
+        <StatCard icon={GraduationCap} tone="success" label="Graduated alumni" value={graduatedCount} />
+        <StatCard icon={UserX} tone="warning" label="Purged dormant leads" value={dormantCount} note="> 12M inactive" />
+        <StatCard icon={ShieldCheck} tone="teal" label="Statutory retention" value="100%" note="GDPR" />
+      </StatGrid>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search archive by student, original ID, or institution..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              aria-label="Filter by Entity Type"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Entity Types</option>
-              <option value="Lead">Leads</option>
-              <option value="Application">Applications</option>
-              <option value="Student Record">Student Records</option>
-            </select>
-
-            <select
-              value={reasonFilter}
-              onChange={(e) => setReasonFilter(e.target.value)}
-              aria-label="Filter by Archival Reason"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Archival Reasons</option>
-              <option value="Course Graduated">Course Graduated</option>
-              <option value="Intake Concluded">Intake Concluded</option>
-              <option value="Student Withdrawn">Student Withdrawn</option>
-              <option value="Lead Inactive > 12M">Lead Inactive &gt; 12M</option>
-              <option value="Visa Refused & Closed">Visa Refused & Closed</option>
-            </select>
-
-            {(search || typeFilter || reasonFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setTypeFilter("");
-                  setReasonFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search student, original ID, institution…" label="Search archive" />
+        <SelectFilter
+          label="Entity type"
+          allLabel="All entity types"
+          value={typeFilter}
+          onChange={setTypeFilter}
+          options={[
+            { value: "Lead", label: "Leads" },
+            { value: "Application", label: "Applications" },
+            { value: "Student Record", label: "Student records" },
+          ]}
+        />
+        <SelectFilter
+          label="Reason"
+          allLabel="All reasons"
+          value={reasonFilter}
+          onChange={setReasonFilter}
+          width="w-64"
+          options={["Course Graduated", "Intake Concluded", "Student Withdrawn", "Lead Inactive > 12M", "Visa Refused & Closed"]}
+        />
+        {(search || typeFilter || reasonFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setTypeFilter("");
+              setReasonFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Archived Table */}
       <Card>
@@ -261,9 +177,9 @@ export default function ArchivedPage() {
                         className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
                           record.reason === "Course Graduated"
-                            ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            ? "border border-success/20 bg-success/10 text-success"
                             : record.reason === "Intake Concluded"
-                            ? "border border-blue-500/20 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                            ? "border border-blue-500/20 bg-blue-700/10 text-blue-700 dark:bg-blue-300/10 dark:text-blue-300"
                             : "border border-muted bg-muted text-muted-foreground"
                         )}
                       >
@@ -279,7 +195,7 @@ export default function ArchivedPage() {
                       <span className="font-mono text-foreground block">
                         {record.retentionUntil}
                       </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                      <span className="text-[10px] text-success">
                         Compliant
                       </span>
                     </td>

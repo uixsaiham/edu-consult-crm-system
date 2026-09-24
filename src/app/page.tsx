@@ -8,7 +8,17 @@ import { OfficePerformanceChart } from "@/components/dashboard/office-performanc
 import { PerformanceTable } from "@/components/dashboard/performance-table";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { Top10LeadSources } from "@/components/dashboard/top-10-lead-sources";
+import { operationsSnapshotDate } from "@/lib/mock/applications";
 import { getAgentPerformance, getCounsellorPerformance } from "@/lib/mock/dashboard";
+import { buttonSecondary } from "@/components/ui/button-styles";
+import { cn } from "@/lib/utils";
+
+const updatedLabel = new Date(`${operationsSnapshotDate}T00:00:00Z`).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 export default function DashboardPage() {
   const counsellors = getCounsellorPerformance();
@@ -16,36 +26,19 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Top Overview Banner inspired by Blomstra / Clinexa */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-              </span>
-              Last updated: Today, 14 Sep 2026
-            </span>
-          </div>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Pipeline & Performance Overview
-          </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Monitor real-time applicant progression, branch targets, and counsellor conversion.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Last 12 months · Updated {updatedLabel}</p>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2.5">
-          <button
-            type="button"
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground card-shadow transition-all hover:bg-surface-hover hover:border-border-strong active:scale-95"
-          >
-            <Download className="size-3.5 text-muted-foreground" />
-            Export Report
-          </button>
-        </div>
-      </div>
+        <button
+          type="button"
+          className={cn(buttonSecondary, "self-start sm:self-auto")}
+        >
+          <Download className="size-4 text-muted-foreground" />
+          Export report
+        </button>
+      </header>
 
       {/* Hero Stat Cards with Interactive Status Carousel & Sparklines */}
       <StatCards />

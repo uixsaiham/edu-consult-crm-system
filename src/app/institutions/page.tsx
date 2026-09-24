@@ -5,16 +5,18 @@ import {
   Award,
   BookOpen,
   Building2,
+  ChevronDown,
   Clock,
-  Filter,
   Landmark,
   Plus,
-  Search,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockInstitutions, type InstitutionRecord } from "@/lib/mock/directory";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<InstitutionRecord[]>(mockInstitutions);
@@ -90,130 +92,53 @@ export default function InstitutionsPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Add University</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Partner Institutions</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
-              <Building2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{institutions.length}</span>
-            <span className="text-xs font-medium text-emerald-600">Universities & Colleges</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Across UK, Ireland, US, CA & AU</p>
-        </Card>
+      <StatGrid>
+        <StatCard icon={Building2} label="Partner institutions" value={institutions.length} />
+        <StatCard icon={Award} tone="warning" label="Direct agreements" value={directContracts} note="Priority" />
+        <StatCard icon={BookOpen} tone="violet" label="Offered programs" value={totalPrograms.toLocaleString()} />
+        <StatCard icon={Clock} tone="success" label="Average offer time" value="48–72h" note="Fast-track" />
+      </StatGrid>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Direct Agreements</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Award className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{directContracts}</span>
-            <span className="text-xs font-medium text-primary">Priority Agency</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Direct tier-1 representation contracts</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Offered Programs</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">
-              <BookOpen className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">{totalPrograms.toLocaleString()}</span>
-            <span className="text-xs font-medium text-purple-600">Active Degrees</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Undergrad, Master & Foundation</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Average Offer TAT</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
-              <Clock className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-foreground tabular-nums">48-72h</span>
-            <span className="text-xs font-medium text-emerald-600">Fast-track</span>
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Dedicated admissions desk support</p>
-        </Card>
-      </div>
+      {/* Filter Bar */}
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search university or city…" label="Search institutions" />
+        <SelectFilter
+          label="Country"
+          allLabel="All countries"
+          value={countryFilter}
+          onChange={setCountryFilter}
+          options={["United Kingdom", "Ireland", "United States", "Canada", "Australia"].map((c) => ({
+            value: c,
+            label: c,
+            hint: institutions.filter((i) => i.country === c).length,
+          }))}
+        />
+        {(search || countryFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setCountryFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Directory Table Card */}
       <Card className="flex flex-col">
         <CardHeader
           icon={Landmark}
-          iconBg="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
-          iconColor="text-amber-600"
           title="University Contracts & Representation"
-          subtitle="Direct representation terms, ranking tiers, application processing speed, and program catalogs"
-          action={
-            <span className="text-xs font-medium text-muted-foreground">
-              Showing {filtered.length} institutions
-            </span>
-          }
+          subtitle={`${filtered.length} institution${filtered.length === 1 ? "" : "s"} match your filters`}
         />
-
-        {/* Filter Bar */}
-        <div className="flex flex-col gap-2.5 border-b border-border/70 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Filter className="size-3.5 text-muted-foreground shrink-0" />
-            <span className="text-xs font-medium text-muted-foreground">Country:</span>
-            <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-0.5">
-              {["", "United Kingdom", "Ireland", "United States", "Canada", "Australia"].map((c) => (
-                <button
-                  key={c || "all"}
-                  type="button"
-                  onClick={() => setCountryFilter(c)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all",
-                    countryFilter === c ? "bg-surface text-primary shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {c ? (c === "United Kingdom" ? "UK" : c === "United States" ? "USA" : c) : "All"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="relative flex items-center w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search university or city..."
-              className="h-7 w-full rounded-full border border-border bg-surface pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-3" />
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
@@ -241,7 +166,7 @@ export default function InstitutionsPage() {
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-bold text-foreground">{inst.name}</span>
                           {inst.featured && (
-                            <span className="rounded-full bg-amber-50 border border-amber-200/60 px-1.5 py-0.2 text-[9px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                            <span className="rounded-full bg-amber-700/10 border border-amber-200/60 px-1.5 py-0.2 text-[9px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
                               Top Partner
                             </span>
                           )}
@@ -261,7 +186,7 @@ export default function InstitutionsPage() {
                       className={cn(
                         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
                         inst.commissionTier.includes("Tier 1")
-                          ? "border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                          ? "border-success/20 bg-success/10 text-success"
                           : "border-primary/20 bg-primary-soft text-primary"
                       )}
                     >
@@ -321,7 +246,9 @@ export default function InstitutionsPage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-3">
               <div>
-                <label className="text-xs font-semibold text-foreground">Institution Name</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Institution Name <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -335,20 +262,25 @@ export default function InstitutionsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground">Country</label>
-                  <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Ireland">Ireland</option>
-                    <option value="United States">United States</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Ireland">Ireland</option>
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="Australia">Australia</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground">City / Campus</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    City / Campus <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -373,15 +305,18 @@ export default function InstitutionsPage() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground">Commission Tier</label>
-                  <select
-                    value={commissionTier}
-                    onChange={(e) => setCommissionTier(e.target.value as InstitutionRecord["commissionTier"])}
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="Tier 1 (15-18%)">Tier 1 (15-18%)</option>
-                    <option value="Tier 2 (12-15%)">Tier 2 (12-15%)</option>
-                    <option value="Tier 3 (10-12%)">Tier 3 (10-12%)</option>
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      value={commissionTier}
+                      onChange={(e) => setCommissionTier(e.target.value as InstitutionRecord["commissionTier"])}
+                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      <option value="Tier 1 (15-18%)">Tier 1 (15-18%)</option>
+                      <option value="Tier 2 (12-15%)">Tier 2 (12-15%)</option>
+                      <option value="Tier 3 (10-12%)">Tier 3 (10-12%)</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
@@ -389,13 +324,13 @@ export default function InstitutionsPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-hover"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Save University
                 </button>

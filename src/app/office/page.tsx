@@ -4,18 +4,20 @@ import { useMemo, useState } from "react";
 import {
   Building2,
   CheckCircle2,
-  Filter,
+  ChevronDown,
   MapPin,
   Phone,
   Plus,
-  Search,
   TrendingUp,
   Users,
   X,
 } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { mockOffices, type OfficeRecord } from "@/lib/mock/directory";
 import { cn } from "@/lib/utils";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function OfficesPage() {
   const [offices, setOffices] = useState<OfficeRecord[]>(mockOffices);
@@ -106,137 +108,49 @@ export default function OfficesPage() {
           <button
             type="button"
             onClick={() => setAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            className={buttonPrimary}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
             <span>Open New Branch</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Total Branches</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary-soft text-primary">
-              <Building2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {offices.length}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Across UK & BD</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Active Counselors</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <Users className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalCounselors}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">Admissions Advisors</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Inquiries This Month</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
-              <TrendingUp className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalLeads.toLocaleString()}
-            </span>
-            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">+14% MoM</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Intake Target Pacing</span>
-            <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <CheckCircle2 className="size-4" />
-            </span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {overallPacing}%
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">
-              ({totalActual} / {totalTarget})
-            </span>
-          </div>
-        </Card>
-      </div>
+      <StatGrid>
+        <StatCard icon={Building2} label="Total branches" value={offices.length} note="UK & BD" />
+        <StatCard icon={Users} tone="teal" label="Active counsellors" value={totalCounselors} />
+        <StatCard icon={TrendingUp} tone="warning" label="Inquiries this month" value={totalLeads.toLocaleString()} note="+14% MoM" />
+        <StatCard icon={CheckCircle2} tone="success" label="Intake target pacing" value={`${overallPacing}%`} note={`${totalActual} / ${totalTarget}`} />
+      </StatGrid>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="relative flex-1 md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search branch by name, city, or manager..."
-              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Filter className="size-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={countryFilter}
-              onChange={(e) => setCountryFilter(e.target.value)}
-              aria-label="Filter by Country"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Countries</option>
-              <option value="United Kingdom">United Kingdom</option>
-              <option value="Bangladesh">Bangladesh</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by Status"
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-hidden"
-            >
-              <option value="">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Expanding">Expanding</option>
-            </select>
-
-            {(search || countryFilter || statusFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setCountryFilter("");
-                  setStatusFilter("");
-                }}
-                className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
+      <FilterBar>
+        <SearchField value={search} onChange={setSearch} placeholder="Search branch, city or manager…" label="Search branches" />
+        <SelectFilter
+          label="Country"
+          allLabel="All countries"
+          value={countryFilter}
+          onChange={setCountryFilter}
+          options={["United Kingdom", "Bangladesh"].map((c) => ({ value: c, label: c, hint: offices.filter((o) => o.country === c).length }))}
+        />
+        <SelectFilter
+          label="Status"
+          allLabel="All statuses"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={["Active", "Expanding"].map((st) => ({ value: st, label: st, hint: offices.filter((o) => o.status === st).length }))}
+        />
+        {(search || countryFilter || statusFilter) && (
+          <ResetFilters
+            onClick={() => {
+              setSearch("");
+              setCountryFilter("");
+              setStatusFilter("");
+            }}
+          />
+        )}
+      </FilterBar>
 
       {/* Offices Table */}
       <Card>
@@ -321,7 +235,7 @@ export default function OfficesPage() {
                             className={cn(
                               "h-full rounded-full transition-all",
                               pct >= 85
-                                ? "bg-emerald-500"
+                                ? "bg-success"
                                 : pct >= 65
                                 ? "bg-primary"
                                 : "bg-amber-500"
@@ -332,7 +246,7 @@ export default function OfficesPage() {
                       </td>
 
                       <td className="py-3.5 px-4 align-top">
-                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
                           {office.conversionRate}%
                         </span>
                       </td>
@@ -342,8 +256,8 @@ export default function OfficesPage() {
                           className={cn(
                             "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
                             office.status === "Active"
-                              ? "border border-emerald-500/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "border border-amber-500/20 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              ? "border border-success/20 bg-success/10 text-success"
+                              : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
                           )}
                         >
                           {office.status}
@@ -389,7 +303,9 @@ export default function OfficesPage() {
 
             <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
               <div>
-                <label className="text-xs font-medium text-foreground">Branch Name</label>
+                <label className="text-xs font-semibold text-foreground">
+                  Branch Name <span className="text-danger">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -402,7 +318,9 @@ export default function OfficesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">City</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    City <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -413,22 +331,25 @@ export default function OfficesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Country</label>
-                  <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Bangladesh">Bangladesh</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="United Arab Emirates">United Arab Emirates</option>
-                    <option value="Malaysia">Malaysia</option>
-                  </select>
+                  <label className="text-xs font-semibold text-foreground">Country</label>
+                  <div className="relative mt-1">
+                    <select
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    >
+                      <option value="Bangladesh">Bangladesh</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="United Arab Emirates">United Arab Emirates</option>
+                      <option value="Malaysia">Malaysia</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground">Full Physical Address</label>
+                <label className="text-xs font-semibold text-foreground">Full Physical Address</label>
                 <input
                   type="text"
                   value={address}
@@ -440,7 +361,9 @@ export default function OfficesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Branch Manager / Lead</label>
+                  <label className="text-xs font-semibold text-foreground">
+                    Branch Manager / Lead <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     required
@@ -451,7 +374,7 @@ export default function OfficesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Official Phone</label>
+                  <label className="text-xs font-semibold text-foreground">Official Phone</label>
                   <input
                     type="text"
                     value={phone}
@@ -464,7 +387,7 @@ export default function OfficesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-foreground">Counselors Allocated</label>
+                  <label className="text-xs font-semibold text-foreground">Counselors Allocated</label>
                   <input
                     type="number"
                     min={1}
@@ -474,7 +397,7 @@ export default function OfficesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground">Intake Target (Students)</label>
+                  <label className="text-xs font-semibold text-foreground">Intake Target (Students)</label>
                   <input
                     type="number"
                     min={10}
@@ -489,13 +412,13 @@ export default function OfficesPage() {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  className={buttonPrimary}
                 >
                   Confirm & Open Branch
                 </button>

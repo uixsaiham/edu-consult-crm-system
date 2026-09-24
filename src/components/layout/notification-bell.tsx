@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { getNotifications, type NotificationItem } from "@/lib/mock/notifications";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useClickOutside } from "@/lib/use-click-outside";
 import { cn } from "@/lib/utils";
 
@@ -25,20 +26,22 @@ export function NotificationBell() {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Notifications"
-        aria-expanded={open}
-        className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
-      >
-        <Bell className="size-[17px]" />
-        {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold leading-none text-white ring-2 ring-surface-muted">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </button>
+      <Tooltip label="Notifications" hidden={open}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Notifications"
+          aria-expanded={open}
+          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+        >
+          <Bell className="size-[17px]" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold leading-none text-white ring-2 ring-surface-muted">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl animate-fade-in">

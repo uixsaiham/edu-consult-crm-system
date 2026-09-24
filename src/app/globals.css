@@ -1,5 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   --background: #f8fafc;
@@ -19,8 +20,8 @@
   --accent: #f59e0b;
   --accent-soft: #fef3c7;
 
-  --success: #45c448;
-  --success-soft: #ebf8ec;
+  --success: #45c348;
+  --success-soft: #e9f8e9;
   --warning: #f59e0b;
   --warning-soft: #fef3c7;
   --danger: #e53e2b;
@@ -33,7 +34,7 @@
   --chart-3: #f59e0b;
   --chart-4: #8fb0de;
   --chart-5: #fb923c;
-  --chart-6: #45c448;
+  --chart-6: #45c348;
   --chart-7: #4d76bb;
   --chart-8: #f59e0b;
   --chart-9: #8fb0de;
@@ -60,8 +61,8 @@
   --accent: #fbbf24;
   --accent-soft: #451a03;
 
-  --success: #55cb58;
-  --success-soft: #10301a;
+  --success: #45c348;
+  --success-soft: #102017;
   --warning: #fbbf24;
   --warning-soft: #451a03;
   --danger: #f16b58;
@@ -222,3 +223,10 @@ html[data-theme="dark"] .theme-icon-dark {
   animation: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
