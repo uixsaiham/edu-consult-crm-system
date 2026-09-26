@@ -1,5 +1,8 @@
 "use client";
 
+import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
   Building2,
@@ -86,8 +89,12 @@ export default function CountriesPage() {
     setEditingCountry(null);
   }
 
+  const selection = useRowSelection(filtered.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`countries-selected.csv`, countries.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -300,11 +307,15 @@ export default function CountriesPage() {
       ) : (
         /* Table View */
         <Card>
+          <SelectionBar selection={selection} noun={["country", "countries"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                  <th className="py-3 pl-6 pr-3">Country</th>
+                  <th className="w-10 py-2.5 pl-6 pr-0">
+                    <HeaderCheckbox selection={selection} />
+                  </th>
+                  <th className="py-3 pl-3 pr-3">Country</th>
                   <th className="py-3 px-3">Total Universities</th>
                   <th className="py-3 px-3">Direct Apps</th>
                   <th className="py-3 px-3">Agent Apps</th>
@@ -317,8 +328,11 @@ export default function CountriesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((item) => (
-                  <tr key={item.id} className="transition-colors hover:bg-muted/30">
-                    <td className="py-3.5 pl-6 pr-3">
+                  <tr key={item.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, item.id))}>
+                    <td className="py-3 pl-6 pr-0 align-middle">
+                      <RowCheckbox selection={selection} id={item.id} label={`Select ${item.name}`} />
+                    </td>
+                    <td className="py-3.5 pl-3 pr-3">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{item.flag}</span>
                         <div>

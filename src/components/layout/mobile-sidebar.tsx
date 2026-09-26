@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";
-import { navSections } from "./nav-items";
+import { isNavItemActive, navSections } from "./nav-items";
 import { useUser } from "./user-context";
 import { cn, initialsFor } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export function MobileSidebar({
 
   const activeParentLabel =
     allNavItems.find(
-      (item) => item.children && (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
+      (item) => item.children && isNavItemActive(item, pathname)
     )?.label ?? null;
 
   const [manualExpanded, setManualExpanded] = useState<string | null>(activeParentLabel);
@@ -67,7 +67,7 @@ export function MobileSidebar({
                 </p>
                 <ul className="flex flex-col gap-0.5">
                   {section.items.map((item) => {
-                    const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                    const active = isNavItemActive(item, pathname);
                     const Icon = item.icon;
                     const hasChildren = !!item.children?.length;
                     const isOpen = hasChildren && expanded === item.label;

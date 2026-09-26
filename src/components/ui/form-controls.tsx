@@ -99,7 +99,7 @@ export function PillGroup<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex flex-wrap items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+    <div className="inline-flex w-fit max-w-full flex-wrap items-center gap-0.5 self-start rounded-full border border-border bg-surface-muted p-0.5">
       {options.map((opt) => {
         const active = value === opt.value;
         return (
@@ -109,7 +109,7 @@ export function PillGroup<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "inline-flex min-h-10 items-center justify-center rounded-full px-4 text-xs font-semibold whitespace-nowrap transition-all",
+              "inline-flex h-8 items-center justify-center rounded-full px-3.5 text-xs font-semibold whitespace-nowrap transition-all",
               active ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -133,7 +133,7 @@ export function Checkbox({
   required?: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-2.5 text-sm text-foreground">
+    <label className="relative flex cursor-pointer items-start gap-2.5 text-sm text-foreground">
       <input
         type="checkbox"
         checked={checked}
@@ -160,11 +160,13 @@ export function Dropzone({
   fileName,
   onClear,
   accept,
+  hint = "PDF, JPG or PNG — up to 10MB",
 }: {
   onFile: (file: File) => void;
   fileName?: string;
   onClear?: () => void;
   accept?: string;
+  hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -212,7 +214,7 @@ export function Dropzone({
         >
           <UploadCloud className="size-5 text-muted-foreground" />
           <span className="text-xs font-semibold text-foreground">Click to upload or drag &amp; drop</span>
-          <span className="text-[11px] text-muted-foreground">PDF, JPG or PNG — up to 10MB</span>
+          <span className="text-[11px] text-muted-foreground">{hint}</span>
         </button>
       )}
     </div>

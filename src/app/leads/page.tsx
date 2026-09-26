@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useRef, useState, type MouseEvent } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
@@ -27,6 +27,8 @@ import {
   type DateRange,
 } from "@/components/ui/filter-dropdown";
 import { AddLeadPanel } from "@/components/leads/add-lead-panel";
+import { HeaderCheckbox, RowCheckbox, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
 import { AssignLeadPanel } from "@/components/leads/assign-lead-panel";
 import { LeadDetailsPanel } from "@/components/leads/lead-details-panel";
 import {
@@ -95,9 +97,6 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const [dateFilter, setDateFilter] = useState<DateRange>(anyDate);
 
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [rangeAnchor, setRangeAnchor] = useState<number | null>(null);
-  const shiftHeldRef = useRef(false);
 
   const [addOpen, setAddOpen] = useState(false);
   const [assigning, setAssigning] = useState<LeadRow[] | null>(null);
@@ -170,6 +169,8 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
   const pageItems = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
+  const selection = useRowSelection(pageItems.map((l) => l.id));
+  const { selected } = selection;
 
   const total = leads.length;
   const newCount = leads.filter((l) => l.status === "New").length;
@@ -177,69 +178,15 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const convertedCount = leads.filter((l) => l.status === "Converted").length;
   const pct = (n: number) => (total > 0 ? `${Math.round((n / total) * 100)}%` : undefined);
 
-  const allOnPageSelected = pageItems.length > 0 && pageItems.every((l) => selected.has(l.id));
-
-  function toggleSelectAllOnPage() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (allOnPageSelected) {
-        pageItems.forEach((l) => next.delete(l.id));
-      } else {
-        pageItems.forEach((l) => next.add(l.id));
-      }
-      return next;
-    });
-  }
-
-  function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function handleRowMouseDown(e: MouseEvent<HTMLInputElement>) {
-    shiftHeldRef.current = e.shiftKey;
-    // Block the browser's native shift-click text-selection behavior; the
-    // checkbox's own toggle is driven by the click/change events below,
-    // which are unaffected by preventDefault on mousedown.
-    if (e.shiftKey) e.preventDefault();
-  }
-
-  function handleRowCheckboxChange(id: string, index: number) {
-    const shiftKey = shiftHeldRef.current;
-    shiftHeldRef.current = false;
-
-    if (shiftKey && rangeAnchor !== null) {
-      const [start, end] = [rangeAnchor, index].sort((a, b) => a - b);
-      const rangeIds = pageItems.slice(start, end + 1).map((l) => l.id);
-      setSelected((prev) => {
-        const next = new Set(prev);
-        rangeIds.forEach((rid) => next.add(rid));
-        return next;
-      });
-    } else {
-      toggleSelect(id);
-    }
-
-    setRangeAnchor(index);
-  }
-
   function handleDeleteSelected() {
     setLeads((prev) => prev.filter((l) => !selected.has(l.id)));
-    setSelected(new Set());
+    selection.clear();
   }
 
   function handleAssign(ids: string[], branch: string, counsellor: string) {
     const idSet = new Set(ids);
     setLeads((prev) => prev.map((l) => (idSet.has(l.id) ? { ...l, branch, counsellor } : l)));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      idSet.forEach((id) => next.delete(id));
-      return next;
-    });
+    selection.retain([...selected].filter((id) => !idSet.has(id)));
   }
 
   const selectedLeads = useMemo(() => leads.filter((l) => selected.has(l.id)), [leads, selected]);
@@ -476,6 +423,7 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
               <span className="text-xs font-semibold text-primary">
                 {selectedLeads.length} lead{selectedLeads.length === 1 ? "" : "s"} selected
               </span>
+              <span className="hidden text-[11px] text-muted-foreground md:inline">Shift-click to select a range</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -497,7 +445,7 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
               </button>
               <button
                 type="button"
-                onClick={() => setSelected(new Set())}
+                onClick={selection.clear}
                 aria-label="Clear selection"
                 className="flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
               >
@@ -512,13 +460,7 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
             <thead className="border-b border-border/80 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="py-2.5 pl-6 pr-2 font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={allOnPageSelected}
-                    onChange={toggleSelectAllOnPage}
-                    className="size-3.5 rounded border-border-strong accent-primary"
-                    aria-label="Select all leads on this page"
-                  />
+                  <HeaderCheckbox selection={selection} label="Select all leads on this page" />
                 </th>
                 <th className="px-3 py-2.5 font-semibold">Actions</th>
                 <th className="px-3 py-2.5 font-semibold">Status</th>
@@ -550,21 +492,12 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
                   </td>
                 </tr>
               ) : (
-                pageItems.map((lead, index) => {
+                pageItems.map((lead) => {
                   const status = leadStatusStyles[lead.status];
-                  const checked = selected.has(lead.id);
                   return (
-                    <tr key={lead.id} className="group transition-colors hover:bg-surface-muted/40">
+                    <tr key={lead.id} className={cn("group transition-colors hover:bg-surface-muted/40", selectedRowClass(selection, lead.id))}>
                       <td className="py-3 pl-6 pr-2 align-middle">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onMouseDown={handleRowMouseDown}
-                          onChange={() => handleRowCheckboxChange(lead.id, index)}
-                          className="size-3.5 rounded border-border-strong accent-primary"
-                          aria-label={`Select ${lead.name}`}
-                          title="Shift-click to select a range"
-                        />
+                        <RowCheckbox selection={selection} id={lead.id} label={`Select ${lead.name}`} />
                       </td>
                       <td className="px-3 py-3 align-middle">
                         <div className="flex items-center gap-1">

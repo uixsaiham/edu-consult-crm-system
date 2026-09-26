@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const agents = getAgentPerformance();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h2>
@@ -47,19 +47,19 @@ export default function DashboardPage() {
       <OperationsOverview />
 
       {/* Trend and funnel share the row in a 60/40 ratio. */}
-      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ApplicationTrendChart />
         <LeadFunnel />
       </div>
 
       {/* Intake Pipeline & Branch Performance Row */}
-      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
         <IntakeOverview />
         <OfficePerformanceChart />
       </div>
 
       {/* Performance Tables Row */}
-      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
         <PerformanceTable
           title="Counsellor Performance"
           subtitle="Applications handled this year, by counsellor"
@@ -79,7 +79,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activities & Top 10 Lead Sources Row */}
-      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12">
         <div className="xl:col-span-7 2xl:col-span-7">
           <RecentActivity />
         </div>

@@ -180,9 +180,9 @@ export function IntakeOverview() {
         }
       />
 
-      {/* Intake tabs — full width; the current intake is marked with a dot */}
+      {/* Intake tabs — sized to their labels; the current intake is marked with a dot */}
       <div className="px-6 pt-5">
-        <div role="tablist" aria-label="Intake" className="flex w-full gap-1 rounded-full bg-surface-muted p-1">
+        <div role="tablist" aria-label="Intake" className="no-scrollbar inline-flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-full bg-surface-muted p-0.5">
           {periods.map((p) => {
             const isSelected = p.id === selectedIntakeId;
             const isCurrent = p.tag === "current";
@@ -196,7 +196,7 @@ export function IntakeOverview() {
                 title={isCurrent ? "Current intake" : undefined}
                 onClick={() => setSelectedIntakeId(p.id)}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary",
+                  "flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary",
                   isSelected ? "bg-surface text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
                   isCurrent && "font-semibold text-primary"
                 )}

@@ -1,5 +1,8 @@
 "use client";
 
+import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -80,8 +83,12 @@ export default function TargetSetupPage() {
     setAddModalOpen(false);
   }
 
+  const selection = useRowSelection(filtered.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`targets-selected.csv`, targets.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -156,11 +163,15 @@ export default function TargetSetupPage() {
           description={`Showing ${filtered.length} target records for ongoing intake cycles.`}
         />
 
+        <SelectionBar selection={selection} noun={["target", "targets"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[780px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="py-3 pl-6 pr-4">Entity & Scope</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="py-3 pl-3 pr-4">Entity & Scope</th>
                 <th className="py-3 px-4">Intake Cycle</th>
                 <th className="py-3 px-4">Target vs Actual</th>
                 <th className="py-3 px-4">Completion Pacing</th>
@@ -172,7 +183,7 @@ export default function TargetSetupPage() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     No target setup records matched your criteria.
                   </td>
                 </tr>
@@ -181,8 +192,11 @@ export default function TargetSetupPage() {
                   const pct = Math.min(100, Math.round((target.achievedCount / target.targetCount) * 100));
 
                   return (
-                    <tr key={target.id} className="transition-colors hover:bg-muted/30">
-                      <td className="py-3.5 pl-6 pr-4">
+                    <tr key={target.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, target.id))}>
+                      <td className="py-3 pl-6 pr-0 align-middle">
+                        <RowCheckbox selection={selection} id={target.id} label={`Select ${target.entityName}`} />
+                      </td>
+                      <td className="py-3.5 pl-3 pr-4">
                         <div className="flex items-center gap-3">
                           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary font-bold text-xs">
                             <Layers className="size-4" />

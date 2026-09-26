@@ -2,6 +2,8 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Download, RotateCcw, Search, X } from "lucide-react";
+import { HeaderCheckbox, RowCheckbox, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
 import { Card } from "@/components/ui/card";
 import {
   anyDate,
@@ -69,7 +71,6 @@ export default function ExportLeadsPage() {
   const [status, setStatus] = useState("");
   const [source, setSource] = useState("");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const sourceOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -100,7 +101,8 @@ export default function ExportLeadsPage() {
   const first = (currentPage - 1) * PAGE_SIZE;
   const visible = filtered.slice(first, first + PAGE_SIZE);
   const hasFilters = !!(search || dateRange.from || dateRange.to || branch || counsellor || status || source);
-  const allOnPageSelected = visible.length > 0 && visible.every((l) => selected.has(l.id));
+  const selection = useRowSelection(visible.map((l) => l.id));
+  const { selected } = selection;
   const selectedRows = filtered.filter((l) => selected.has(l.id));
 
   function update<T>(setter: (v: T) => void) {
@@ -117,28 +119,8 @@ export default function ExportLeadsPage() {
     setCounsellor("");
     setStatus("");
     setSource("");
-    setSelected(new Set());
+    selection.clear();
     setPage(1);
-  }
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function togglePage() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      for (const l of visible) {
-        if (allOnPageSelected) next.delete(l.id);
-        else next.add(l.id);
-      }
-      return next;
-    });
   }
 
   return (
@@ -259,7 +241,8 @@ export default function ExportLeadsPage() {
           {selected.size > 0 && (
             <p className="flex items-center gap-2">
               <span className="font-medium text-primary">{selected.size} selected</span>
-              <button type="button" onClick={() => setSelected(new Set())} className="inline-flex items-center gap-1 hover:text-foreground">
+              <span className="hidden md:inline">· Shift-click to select a range</span>
+              <button type="button" onClick={selection.clear} className="inline-flex items-center gap-1 hover:text-foreground">
                 <X className="size-3" />
                 Clear
               </button>
@@ -272,13 +255,7 @@ export default function ExportLeadsPage() {
             <thead>
               <tr className="border-y border-border bg-surface-muted/40 text-muted-foreground">
                 <th className="w-10 py-2.5 pl-5 pr-2">
-                  <input
-                    type="checkbox"
-                    aria-label="Select all on this page"
-                    checked={allOnPageSelected}
-                    onChange={togglePage}
-                    className="size-3.5 cursor-pointer accent-[var(--primary)]"
-                  />
+                  <HeaderCheckbox selection={selection} label="Select all on this page" />
                 </th>
                 {columns
                   .filter((c) => c.key !== "country")
@@ -299,23 +276,16 @@ export default function ExportLeadsPage() {
               ) : (
                 visible.map((l) => {
                   const style = leadStatusStyles[l.status];
-                  const checked = selected.has(l.id);
                   return (
                     <tr
                       key={l.id}
                       className={cn(
                         "border-b border-border/70 transition-colors last:border-0 hover:bg-surface-hover",
-                        checked && "bg-primary-soft/40"
+                        selectedRowClass(selection, l.id)
                       )}
                     >
                       <td className="py-2.5 pl-5 pr-2">
-                        <input
-                          type="checkbox"
-                          aria-label={`Select ${l.name}`}
-                          checked={checked}
-                          onChange={() => toggle(l.id)}
-                          className="size-3.5 cursor-pointer accent-[var(--primary)]"
-                        />
+                        <RowCheckbox selection={selection} id={l.id} label={`Select ${l.name}`} />
                       </td>
                       <td className="px-3 py-2.5">
                         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", style.bg, style.text)}>

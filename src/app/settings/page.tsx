@@ -28,7 +28,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -126,7 +126,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Panels */}
-      <form onSubmit={handleSave} className="flex flex-col gap-6">
+      <form onSubmit={handleSave} className="flex flex-col gap-4">
         {/* 1. General Organization Tab */}
         {activeTab === "general" && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

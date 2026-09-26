@@ -44,11 +44,11 @@ export const navSections: NavSection[] = [
         href: "/",
         icon: LayoutDashboard,
         children: [
-          { label: "Branch Performance", href: "/?view=branch-performance" },
-          { label: "Counsellor Performance", href: "/?view=counsellor-performance" },
-          { label: "Agent Performance", href: "/?view=agent-performance" },
-          { label: "Institutions Performance", href: "/?view=institutions-performance" },
-          { label: "Lead Source Performance", href: "/?view=lead-source-performance" },
+          { label: "Branch Performance", href: "/performance/branches" },
+          { label: "Counsellor Performance", href: "/performance/counsellors" },
+          { label: "Agent Performance", href: "/performance/agents" },
+          { label: "Institutions Performance", href: "/performance/institutions" },
+          { label: "Lead Source Performance", href: "/performance/lead-sources" },
         ],
       },
       {
@@ -82,8 +82,8 @@ export const navSections: NavSection[] = [
         children: [
           { label: "WhatsApp Workspace", href: "/whatsapp-workspace" },
           { label: "WhatsApp Accounts", href: "/whatsapp-accounts" },
-          { label: "Announcements", href: "/whatsapp-workspace?tab=announcements" },
-          { label: "News Feed", href: "/whatsapp-workspace?tab=news-feed" },
+          { label: "Announcements", href: "/communications/announcements" },
+          { label: "News Feed", href: "/communications/news-feed" },
         ],
       },
     ],
@@ -101,7 +101,15 @@ export const navSections: NavSection[] = [
           { label: "View Represent Country", href: "/countries?view=list" },
         ],
       },
-      { label: "Institutions", href: "/institutions", icon: Landmark },
+      {
+        label: "Institutions",
+        href: "/institutions",
+        icon: Landmark,
+        children: [
+          { label: "Add Institution", href: "/institutions/new" },
+          { label: "View Institutions", href: "/institutions" },
+        ],
+      },
       {
         label: "Courses",
         href: "/courses",
@@ -130,12 +138,12 @@ export const navSections: NavSection[] = [
         href: "/people",
         icon: Users,
         children: [
-          { label: "Add People", href: "/people?action=add" },
+          { label: "Add People", href: "/people/new" },
           { label: "View People", href: "/people" },
-          { label: "Role", href: "/people?view=role" },
-          { label: "Task Setting", href: "/people?view=task-setting" },
-          { label: "Announcements", href: "/people?view=announcements" },
-          { label: "Teams", href: "/people?view=teams" },
+          { label: "Role", href: "/people/roles" },
+          { label: "Task Setting", href: "/people/tasks" },
+          { label: "Announcements", href: "/people/announcements" },
+          { label: "Teams", href: "/people/teams" },
         ],
       },
       {
@@ -217,3 +225,12 @@ export const navSections: NavSection[] = [
 ];
 
 export const navItems: NavItem[] = navSections.flatMap((section) => section.items);
+
+/** True when the current path belongs to this item or one of its sub-pages. */
+export function isNavItemActive(item: NavItem, pathname: string) {
+  if (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) return true;
+  return !!item.children?.some((child) => {
+    const path = child.href.split("?")[0];
+    return path !== "/" && path !== item.href && pathname.startsWith(path);
+  });
+}

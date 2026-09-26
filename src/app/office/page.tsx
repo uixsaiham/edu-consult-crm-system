@@ -1,5 +1,8 @@
 "use client";
 
+import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
   Building2,
@@ -91,8 +94,12 @@ export default function OfficesPage() {
     setAddModalOpen(false);
   }
 
+  const selection = useRowSelection(filtered.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`offices-selected.csv`, offices.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -159,11 +166,15 @@ export default function OfficesPage() {
           description={`Showing ${filtered.length} of ${offices.length} branches across global operations.`}
         />
 
+        <SelectionBar selection={selection} noun={["office", "offices"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="py-3 pl-6 pr-4">Branch & Location</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="py-3 pl-3 pr-4">Branch & Location</th>
                 <th className="py-3 px-4">Branch Lead / Manager</th>
                 <th className="py-3 px-4">Counselor Team</th>
                 <th className="py-3 px-4">Current Intake Pacing</th>
@@ -175,7 +186,7 @@ export default function OfficesPage() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     No branches matched your search criteria.
                   </td>
                 </tr>
@@ -183,8 +194,11 @@ export default function OfficesPage() {
                 filtered.map((office) => {
                   const pct = Math.min(100, Math.round((office.enrolledActual / office.enrolledTarget) * 100));
                   return (
-                    <tr key={office.id} className="transition-colors hover:bg-muted/30">
-                      <td className="py-3.5 pl-6 pr-4">
+                    <tr key={office.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, office.id))}>
+                      <td className="py-3 pl-6 pr-0 align-middle">
+                        <RowCheckbox selection={selection} id={office.id} label={`Select ${office.name}`} />
+                      </td>
+                      <td className="py-3.5 pl-3 pr-4">
                         <div className="flex items-start gap-3">
                           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary font-bold text-xs">
                             {office.city.substring(0, 3).toUpperCase()}

@@ -1,5 +1,8 @@
 "use client";
 
+import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
   ArrowDownRight,
@@ -87,8 +90,12 @@ export default function FinancePage() {
     setAddModalOpen(false);
   }
 
+  const selection = useRowSelection(filtered.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`finance-transactions-selected.csv`, transactions.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -152,11 +159,15 @@ export default function FinancePage() {
           description={`Showing ${filtered.length} of ${transactions.length} institutional payment ledger entries.`}
         />
 
+        <SelectionBar selection={selection} noun={["transaction", "transactions"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[840px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="py-3 pl-6 pr-4">Invoice & Student</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="py-3 pl-3 pr-4">Invoice & Student</th>
                 <th className="py-3 px-4">Institution & Market</th>
                 <th className="py-3 px-4">Tuition & Deposit</th>
                 <th className="py-3 px-4">Commission %</th>
@@ -169,14 +180,17 @@ export default function FinancePage() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
                     No financial ledger records matched your search.
                   </td>
                 </tr>
               ) : (
                 filtered.map((tx) => (
-                  <tr key={tx.id} className="transition-colors hover:bg-muted/30">
-                    <td className="py-3.5 pl-6 pr-4">
+                  <tr key={tx.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, tx.id))}>
+                    <td className="py-3 pl-6 pr-0 align-middle">
+                      <RowCheckbox selection={selection} id={tx.id} label={`Select ${tx.studentName}`} />
+                    </td>
+                    <td className="py-3.5 pl-3 pr-4">
                       <div>
                         <span className="font-mono font-bold text-foreground block">
                           {tx.ref}

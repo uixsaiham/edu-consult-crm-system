@@ -1,114 +1,131 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Award,
-  BookOpen,
-  Building2,
-  ChevronDown,
-  Clock,
-  Landmark,
-  Plus,
-  X,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { BookOpen, Building2, Clock, Globe, Landmark, Plus } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
-import { mockInstitutions, type InstitutionRecord } from "@/lib/mock/directory";
+import { buttonPrimary } from "@/components/ui/button-styles";
+import { useToast } from "@/components/ui/toast";
+import { RowActions, StatusSwitch, WebsiteToggle } from "@/components/institutions/row-actions";
+import { BarButton, HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
+import { InstitutionView } from "@/components/institutions/institution-view";
+import type { InstitutionRecord } from "@/lib/mock/directory";
+import {
+  clearLastChange,
+  getInstitutions,
+  getLastChange,
+  isActive,
+  isOnWebsite,
+  updateInstitution,
+} from "@/lib/mock/institution-store";
 import { cn } from "@/lib/utils";
-import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 
 export default function InstitutionsPage() {
-  const [institutions, setInstitutions] = useState<InstitutionRecord[]>(mockInstitutions);
+  const [institutions, setInstitutions] = useState<InstitutionRecord[]>(getInstitutions);
   const [search, setSearch] = useState("");
-  const [countryFilter, setCountryFilter] = useState<string>("");
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [countryFilter, setCountryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [webFilter, setWebFilter] = useState("");
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [lastChange] = useState(getLastChange);
+  const [toast, notify] = useToast();
 
-  // Form state
-  const [name, setName] = useState("");
-  const [country, setCountry] = useState("United Kingdom");
-  const [city, setCity] = useState("");
-  const [ranking, setRanking] = useState("");
-  const [commissionTier, setCommissionTier] = useState<InstitutionRecord["commissionTier"]>("Tier 1 (15-18%)");
+  useEffect(() => {
+    if (!lastChange) return;
+    clearLastChange();
+    notify(lastChange.kind === "added" ? "Institution added to your directory" : "Changes saved");
+  }, [lastChange, notify]);
 
   const filtered = useMemo(() => {
-    let list = institutions;
-    if (countryFilter) list = list.filter((inst) => inst.country === countryFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      list = list.filter(
-        (inst) =>
-          inst.name.toLowerCase().includes(q) ||
-          inst.city.toLowerCase().includes(q) ||
-          inst.country.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [institutions, search, countryFilter]);
+    const q = search.toLowerCase().trim();
+    return institutions.filter((inst) => {
+      if (countryFilter && inst.country !== countryFilter) return false;
+      if (statusFilter === "active" && !isActive(inst)) return false;
+      if (statusFilter === "inactive" && isActive(inst)) return false;
+      if (webFilter === "live" && !isOnWebsite(inst)) return false;
+      if (webFilter === "hidden" && isOnWebsite(inst)) return false;
+      return !q || `${inst.name} ${inst.city} ${inst.country}`.toLowerCase().includes(q);
+    });
+  }, [institutions, search, countryFilter, statusFilter, webFilter]);
 
-  const totalPrograms = institutions.reduce((acc, i) => acc + i.programsCount, 0);
-  const directContracts = institutions.filter((i) => i.agreementType === "Direct Agreement").length;
+  const activeList = institutions.filter(isActive);
+  const liveList = institutions.filter(isOnWebsite);
+  const viewing = institutions.find((i) => i.id === viewingId) ?? null;
+  const selection = useRowSelection(filtered.map((i) => i.id));
+  const selectedInstitutions = institutions.filter((i) => selection.isSelected(i.id));
 
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !city) return;
+  const bulkActive = (next: boolean) => {
+    selectedInstitutions.forEach((i) => updateInstitution(i.id, next ? { active: true } : { active: false, showOnWebsite: false }));
+    setInstitutions(getInstitutions());
+    notify(`${selectedInstitutions.length} institution${selectedInstitutions.length === 1 ? "" : "s"} ${next ? "activated" : "deactivated"}`);
+  };
 
-    const newInst: InstitutionRecord = {
-      id: `INS-0${institutions.length + 1}`,
-      name,
-      country,
-      city,
-      logoText: name.slice(0, 3).toUpperCase(),
-      ranking: ranking || "Ranked UK Institution",
-      commissionTier,
-      agreementType: "Direct Agreement",
-      tatDays: "48-72 hours",
-      openIntakes: ["September 2026", "January 2027"],
-      programsCount: 85,
-      featured: false,
-    };
+  const bulkWebsite = (next: boolean) => {
+    const eligible = selectedInstitutions.filter(isActive);
+    eligible.forEach((i) => updateInstitution(i.id, { showOnWebsite: next }));
+    setInstitutions(getInstitutions());
+    const skipped = selectedInstitutions.length - eligible.length;
+    notify(
+      `${eligible.length} ${next ? "published to" : "hidden from"} the website` + (next && skipped ? ` · ${skipped} inactive skipped` : "")
+    );
+  };
+  const hasFilters = !!(search || countryFilter || statusFilter || webFilter);
 
-    setInstitutions([newInst, ...institutions]);
-    setName("");
-    setCity("");
-    setRanking("");
-    setAddModalOpen(false);
-  }
+  const patch = (id: string, change: Partial<InstitutionRecord>) => {
+    updateInstitution(id, change);
+    setInstitutions(getInstitutions());
+  };
+
+  const setActive = (inst: InstitutionRecord, next: boolean) => {
+    // Deactivating also unpublishes, so hidden institutions never appear on the website.
+    patch(inst.id, next ? { active: true } : { active: false, showOnWebsite: false });
+    notify(next ? `${inst.name} is active` : `${inst.name} deactivated and removed from the website`);
+  };
+
+  const setWebsite = (inst: InstitutionRecord, next: boolean) => {
+    patch(inst.id, { showOnWebsite: next });
+    notify(next ? `${inst.programsCount} courses published to the website` : `${inst.name}'s courses hidden from the website`);
+  };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Page Header */}
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Institutions & Universities
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Institutions & Universities</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Contracted partner universities, direct representation agreements, commission tiers, and application TAT.
           </p>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className={buttonPrimary}
-          >
-            <Plus className="size-4" />
-            <span>Add University</span>
-          </button>
-        </div>
+        <Link href="/institutions/new" className={cn(buttonPrimary, "shrink-0 self-start sm:self-auto")}>
+          <Plus className="size-4" />
+          <span>Add Institution</span>
+        </Link>
       </div>
 
-      {/* KPI Cards */}
       <StatGrid>
-        <StatCard icon={Building2} label="Partner institutions" value={institutions.length} />
-        <StatCard icon={Award} tone="warning" label="Direct agreements" value={directContracts} note="Priority" />
-        <StatCard icon={BookOpen} tone="violet" label="Offered programs" value={totalPrograms.toLocaleString()} />
+        <StatCard
+          icon={Building2}
+          label="Active institutions"
+          value={activeList.length}
+          note={`of ${institutions.length}`}
+          onClick={() => setStatusFilter(statusFilter === "active" ? "" : "active")}
+        />
+        <StatCard
+          icon={Globe}
+          tone="danger"
+          label="Live on website"
+          value={liveList.length}
+          note={`${liveList.reduce((s, i) => s + i.programsCount, 0).toLocaleString()} courses`}
+          onClick={() => setWebFilter(webFilter === "live" ? "" : "live")}
+        />
+        <StatCard icon={BookOpen} tone="violet" label="Offered programs" value={activeList.reduce((s, i) => s + i.programsCount, 0).toLocaleString()} />
         <StatCard icon={Clock} tone="success" label="Average offer time" value="48–72h" note="Fast-track" />
       </StatGrid>
 
-      {/* Filter Bar */}
       <FilterBar>
         <SearchField value={search} onChange={setSearch} placeholder="Search university or city…" label="Search institutions" />
         <SelectFilter
@@ -116,23 +133,44 @@ export default function InstitutionsPage() {
           allLabel="All countries"
           value={countryFilter}
           onChange={setCountryFilter}
-          options={["United Kingdom", "Ireland", "United States", "Canada", "Australia"].map((c) => ({
+          options={[...new Set(institutions.map((i) => i.country))].sort().map((c) => ({
             value: c,
             label: c,
             hint: institutions.filter((i) => i.country === c).length,
           }))}
         />
-        {(search || countryFilter) && (
+        <SelectFilter
+          label="Status"
+          allLabel="All statuses"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: "active", label: "Active", hint: activeList.length },
+            { value: "inactive", label: "Inactive", hint: institutions.length - activeList.length },
+          ]}
+        />
+        <SelectFilter
+          label="Website"
+          allLabel="Website: any"
+          value={webFilter}
+          onChange={setWebFilter}
+          options={[
+            { value: "live", label: "Live on website", hint: liveList.length },
+            { value: "hidden", label: "Hidden", hint: institutions.length - liveList.length },
+          ]}
+        />
+        {hasFilters && (
           <ResetFilters
             onClick={() => {
               setSearch("");
               setCountryFilter("");
+              setStatusFilter("");
+              setWebFilter("");
             }}
           />
         )}
       </FilterBar>
 
-      {/* Directory Table Card */}
       <Card className="flex flex-col">
         <CardHeader
           icon={Landmark}
@@ -140,205 +178,155 @@ export default function InstitutionsPage() {
           subtitle={`${filtered.length} institution${filtered.length === 1 ? "" : "s"} match your filters`}
         />
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+        <SelectionBar
+          selection={selection}
+          noun={["institution", "institutions"]}
+          onExport={() => downloadCsv("institutions-selected.csv", selectedInstitutions.map(toCsvRow))}
+          className="mx-4 mt-4 sm:mx-6"
+        >
+          <BarButton onClick={() => bulkActive(true)}>Activate</BarButton>
+          <BarButton onClick={() => bulkActive(false)}>Deactivate</BarButton>
+          <BarButton onClick={() => bulkWebsite(true)}>Publish to web</BarButton>
+          <BarButton onClick={() => bulkWebsite(false)}>Hide from web</BarButton>
+        </SelectionBar>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[1040px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border/80 bg-surface-muted/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <th className="py-3 pl-6 pr-3 font-semibold">University</th>
-                <th className="px-3 py-3 font-semibold">Country & City</th>
+                <th className="w-10 py-3 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} label="Select all institutions" />
+                </th>
+                <th className="py-3 pl-3 pr-3 font-semibold">University</th>
                 <th className="px-3 py-3 font-semibold">Commission Tier</th>
-                <th className="px-3 py-3 font-semibold">Agreement Type</th>
-                <th className="px-3 py-3 font-semibold">Turnaround (TAT)</th>
+                <th className="px-3 py-3 font-semibold">Agreement</th>
                 <th className="px-3 py-3 font-semibold">Programs</th>
-                <th className="py-3 pl-3 pr-6 text-right font-semibold">Open Intakes</th>
+                <th className="px-3 py-3 font-semibold">Open Intakes</th>
+                <th className="px-3 py-3 font-semibold">Status</th>
+                <th className="px-3 py-3 font-semibold">Website</th>
+                <th className="py-3 pl-3 pr-6 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {filtered.map((inst) => (
-                <tr key={inst.id} className="group transition-colors hover:bg-surface-muted/40">
-                  <td className="py-3.5 pl-6 pr-3 align-middle">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-muted border border-border font-mono font-bold text-primary text-xs">
-                        {inst.logoText}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-foreground">{inst.name}</span>
-                          {inst.featured && (
-                            <span className="rounded-full bg-amber-700/10 border border-amber-200/60 px-1.5 py-0.2 text-[9px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                              Top Partner
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground">{inst.ranking}</p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-3 py-3.5 align-middle">
-                    <span className="font-semibold text-foreground">{inst.city}</span>
-                    <p className="text-[11px] text-muted-foreground">{inst.country}</p>
-                  </td>
-
-                  <td className="px-3 py-3.5 align-middle">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-                        inst.commissionTier.includes("Tier 1")
-                          ? "border-success/20 bg-success/10 text-success"
-                          : "border-primary/20 bg-primary-soft text-primary"
-                      )}
-                    >
-                      {inst.commissionTier}
-                    </span>
-                  </td>
-
-                  <td className="px-3 py-3.5 align-middle">
-                    <span className="text-foreground font-medium">{inst.agreementType}</span>
-                  </td>
-
-                  <td className="px-3 py-3.5 align-middle text-muted-foreground text-[11px]">
-                    <div className="flex items-center gap-1">
-                      <Clock className="size-3 text-muted-foreground" />
-                      <span>{inst.tatDays}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-3 py-3.5 align-middle">
-                    <span className="font-semibold text-foreground tabular-nums">{inst.programsCount}</span>
-                    <span className="text-[11px] text-muted-foreground ml-1">courses</span>
-                  </td>
-
-                  <td className="py-3.5 pl-3 pr-6 align-middle text-right">
-                    <div className="flex items-center justify-end gap-1 flex-wrap">
-                      {inst.openIntakes.map((intake) => (
-                        <span
-                          key={intake}
-                          className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                        >
-                          {intake}
+              {filtered.map((inst) => {
+                const active = isActive(inst);
+                const highlighted = inst.id === lastChange?.id;
+                const dim = !active && "opacity-50";
+                return (
+                  <tr
+                    key={inst.id}
+                    className={cn(
+                      "group transition-colors hover:bg-surface-muted/40",
+                      highlighted && "bg-success-soft/60",
+                      selectedRowClass(selection, inst.id)
+                    )}
+                  >
+                    <td className="py-3.5 pl-6 pr-0 align-middle">
+                      <RowCheckbox selection={selection} id={inst.id} label={`Select ${inst.name}`} />
+                    </td>
+                    <td className={cn("py-3.5 pl-3 pr-3 align-middle", dim)}>
+                      <button type="button" onClick={() => setViewingId(inst.id)} className="flex items-center gap-3 text-left">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-muted font-mono text-xs font-bold text-primary">
+                          {inst.logoText}
                         </span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <span className="min-w-0">
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs font-bold text-foreground group-hover:text-primary">{inst.name}</span>
+                            {highlighted && (
+                              <span className="rounded-full bg-success px-1.5 py-0.5 text-[9px] font-bold text-white">
+                                {lastChange?.kind === "added" ? "New" : "Updated"}
+                              </span>
+                            )}
+                            {!active && <span className="rounded-full bg-surface-hover px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground">Inactive</span>}
+                            {active && inst.status === "Onboarding" && (
+                              <span className="rounded-full bg-warning-soft px-1.5 py-0.5 text-[9px] font-bold text-warning">Onboarding</span>
+                            )}
+                            {inst.featured && (
+                              <span className="whitespace-nowrap rounded-full border border-amber-200/60 bg-amber-700/10 px-1.5 text-[9px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                                Top Partner
+                              </span>
+                            )}
+                          </span>
+                          <span className="block text-[11px] text-muted-foreground">
+                            {inst.city}, {inst.country} · {inst.ranking}
+                          </span>
+                        </span>
+                      </button>
+                    </td>
+
+                    <td className={cn("px-3 py-3.5 align-middle", dim)}>
+                      <span
+                        className={cn(
+                          "inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+                          inst.commissionTier.includes("Tier 1")
+                            ? "border-success/20 bg-success/10 text-success"
+                            : "border-primary/20 bg-primary-soft text-primary"
+                        )}
+                      >
+                        {inst.commissionTier}
+                      </span>
+                    </td>
+
+                    <td className={cn("px-3 py-3.5 align-middle", dim)}>
+                      <span className="font-medium text-foreground">
+                        {inst.agreementType === "Direct Agreement" ? "Direct" : "Aggregator"}
+                      </span>
+                      <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="size-3" />
+                        {inst.tatDays}
+                      </p>
+                    </td>
+
+                    <td className={cn("px-3 py-3.5 align-middle", dim)}>
+                      <span className="font-semibold tabular-nums text-foreground">{inst.programsCount}</span>
+                      <span className="ml-1 text-[11px] text-muted-foreground">courses</span>
+                    </td>
+
+                    <td className={cn("px-3 py-3.5 align-middle", dim)}>
+                      <div className="flex max-w-[190px] flex-wrap gap-1">
+                        {inst.openIntakes.map((intake) => (
+                          <span key={intake} className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {intake}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+
+                    <td className="px-3 py-3.5 align-middle">
+                      <StatusSwitch checked={active} onChange={(next) => setActive(inst, next)} ariaLabel={`${inst.name} active`} />
+                    </td>
+
+                    <td className="px-3 py-3.5 align-middle">
+                      <WebsiteToggle
+                        live={isOnWebsite(inst)}
+                        onChange={(next) => setWebsite(inst, next)}
+                        disabled={!active}
+                        ariaLabel={`Show ${inst.name} courses on website`}
+                      />
+                    </td>
+
+                    <td className="py-3.5 pl-3 pr-6 text-right align-middle">
+                      <RowActions onView={() => setViewingId(inst.id)} editHref={`/institutions/${inst.id}/edit`} name={inst.name} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          {filtered.length === 0 && (
+            <p className="px-6 py-14 text-center text-sm text-muted-foreground">No institutions match your filters.</p>
+          )}
         </div>
       </Card>
 
-      {/* Add Institution Modal */}
-      {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-6 card-shadow">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-foreground">Add Partner University</h3>
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-3">
-              <div>
-                <label className="text-xs font-semibold text-foreground">
-                  Institution Name <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. University of Westminster"
-                  className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Country</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
-                    >
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Ireland">Ireland</option>
-                      <option value="United States">United States</option>
-                      <option value="Canada">Canada</option>
-                      <option value="Australia">Australia</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    City / Campus <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="London"
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Ranking / Accolade</label>
-                  <input
-                    type="text"
-                    value={ranking}
-                    onChange={(e) => setRanking(e.target.value)}
-                    placeholder="Top 100 UK"
-                    className="mt-1 h-9 w-full rounded-xl border border-border bg-surface px-3 text-xs text-foreground focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Commission Tier</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={commissionTier}
-                      onChange={(e) => setCommissionTier(e.target.value as InstitutionRecord["commissionTier"])}
-                      className="h-9 w-full appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-xs text-foreground focus:border-primary focus:outline-none"
-                    >
-                      <option value="Tier 1 (15-18%)">Tier 1 (15-18%)</option>
-                      <option value="Tier 2 (12-15%)">Tier 2 (12-15%)</option>
-                      <option value="Tier 3 (10-12%)">Tier 3 (10-12%)</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-border mt-2">
-                <button
-                  type="button"
-                  onClick={() => setAddModalOpen(false)}
-                  className={buttonSecondary}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimary}
-                >
-                  Save University
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {viewing && (
+        <InstitutionView
+          institution={viewing}
+          onClose={() => setViewingId(null)}
+          onToggleActive={(next) => setActive(viewing, next)}
+          onToggleWebsite={(next) => setWebsite(viewing, next)}
+        />
       )}
+      {toast}
     </div>
   );
 }

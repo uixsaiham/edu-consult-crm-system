@@ -118,6 +118,8 @@ html[data-theme="dark"] {
 }
 
 body {
+  /* The app shell scrolls inside <main>; the page itself never should. */
+  overflow: hidden;
   font-family: var(--font-sans);
   background: var(--background);
   background-image:

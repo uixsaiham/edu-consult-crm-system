@@ -39,7 +39,7 @@ export function OperationsOverview() {
   const [window, setWindow] = useState<(typeof windows)[number]>("Next 7 days");
   const [category, setCategory] = useState<(typeof categories)[number]>("Documents");
   const scopedApplications = applications.filter((app) => !branch || (branch === "unassigned" ? !app.branch : app.branch === branch));
-  const openApplications = scopedApplications.filter((app) => app.stage !== "Enrolled" && app.stage !== "Rejected");
+  const openApplications = scopedApplications.filter((app) => !["Enrolled", "Rejected", "Withdrawn"].includes(app.stage));
   const deadlines = openApplications.flatMap((app) => (app.deadlines || []).map((deadline) => ({ app, ...deadline, days: daysFromSnapshot(deadline.dueDate) }))).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   const deadlineRows = (period: (typeof windows)[number]) => deadlines.filter((row) => period === "Overdue" ? row.days < 0 : row.days >= 0 && row.days <= (period === "Next 7 days" ? 7 : 30));
   const blockers = openApplications.flatMap((app) => (app.blockers || []).map((blocker) => ({ app, ...blocker }))).sort((a, b) => a.since.localeCompare(b.since));

@@ -1,5 +1,8 @@
 "use client";
 
+import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight, Globe2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -57,8 +60,12 @@ export default function CountryManagementPage() {
     setDeleting(null);
   }
 
+  const selection = useRowSelection(visible.map((row) => row.code));
+  const exportSelected = () =>
+    downloadCsv(`country-list-selected.csv`, countries.filter((row) => selection.isSelected(row.code)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -136,11 +143,15 @@ export default function CountryManagementPage() {
         </div>
 
         {/* Table */}
+        <SelectionBar selection={selection} noun={["country", "countries"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-border bg-surface-muted/40 text-xs text-muted-foreground">
-                <th className="w-14 py-2.5 pl-5 pr-3 font-medium">#</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="w-14 py-2.5 pl-3 pr-3 font-medium">#</th>
                 <th className="px-3 py-2.5 font-medium">Country</th>
                 <th className="w-24 px-3 py-2.5 font-medium">Code</th>
                 <th className="w-36 px-3 py-2.5 font-medium">Status</th>
@@ -150,7 +161,7 @@ export default function CountryManagementPage() {
             <tbody>
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-14 text-center text-sm text-muted-foreground">
+                  <td colSpan={6} className="py-14 text-center text-sm text-muted-foreground">
                     No countries match “{search}”.
                   </td>
                 </tr>
@@ -158,8 +169,11 @@ export default function CountryManagementPage() {
                 visible.map((c, i) => {
                   const represented = representedNames.has(c.name.toLowerCase());
                   return (
-                    <tr key={c.code} className="border-b border-border/70 transition-colors last:border-0 hover:bg-surface-hover">
-                      <td className="py-2.5 pl-5 pr-3 text-xs tabular-nums text-muted-foreground">{firstIndex + i + 1}</td>
+                    <tr key={c.code} className={cn("border-b border-border/70 transition-colors last:border-0 hover:bg-surface-hover", selectedRowClass(selection, c.code))}>
+                      <td className="py-3 pl-6 pr-0 align-middle">
+                        <RowCheckbox selection={selection} id={c.code} label={`Select ${c.name}`} />
+                      </td>
+                      <td className="py-2.5 pl-3 pr-3 text-xs tabular-nums text-muted-foreground">{firstIndex + i + 1}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-3">
                           <span className="flex size-8 shrink-0 select-none items-center justify-center rounded-full bg-surface-muted text-base leading-none">

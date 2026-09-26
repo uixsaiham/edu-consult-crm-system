@@ -1,5 +1,8 @@
 "use client";
 
+import { BarButton, HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
   Archive,
@@ -46,8 +49,12 @@ export default function ArchivedPage() {
     setRecords(records.filter((r) => r.id !== id));
   }
 
+  const selection = useRowSelection(filtered.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`archived-records-selected.csv`, records.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -118,11 +125,24 @@ export default function ArchivedPage() {
           description={`Showing ${filtered.length} of ${records.length} compliance archived files.`}
         />
 
+        <SelectionBar selection={selection} noun={["record", "records"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6">
+          <BarButton
+            onClick={() => {
+              setRecords((prev) => prev.filter((r) => !selection.isSelected(r.id)));
+              selection.clear();
+            }}
+          >
+            Restore selected
+          </BarButton>
+        </SelectionBar>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="py-3 pl-6 pr-4">Subject & Reference</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="py-3 pl-3 pr-4">Subject & Reference</th>
                 <th className="py-3 px-4">Entity Type</th>
                 <th className="py-3 px-4">Associated Entity</th>
                 <th className="py-3 px-4">Intake Cycle</th>
@@ -135,14 +155,17 @@ export default function ArchivedPage() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
                     No archived records match the search filter.
                   </td>
                 </tr>
               ) : (
                 filtered.map((record) => (
-                  <tr key={record.id} className="transition-colors hover:bg-muted/30">
-                    <td className="py-3.5 pl-6 pr-4">
+                  <tr key={record.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, record.id))}>
+                    <td className="py-3 pl-6 pr-0 align-middle">
+                      <RowCheckbox selection={selection} id={record.id} label={`Select ${record.subjectName}`} />
+                    </td>
+                    <td className="py-3.5 pl-3 pr-4">
                       <div>
                         <span className="font-semibold text-foreground text-sm block">
                           {record.subjectName}

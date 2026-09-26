@@ -1,5 +1,8 @@
 "use client";
 
+import { BarButton, HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
+import { useRowSelection } from "@/lib/use-row-selection";
+import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState, type FormEvent } from "react";
 import {
   AlertCircle,
@@ -147,6 +150,10 @@ export default function FollowUpsPage() {
       close();
     };
   }
+
+  const selection = useRowSelection(visible.map((row) => row.id));
+  const exportSelected = () =>
+    downloadCsv(`follow-ups-selected.csv`, items.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
 
   return (
     <div className="flex flex-col gap-4">
@@ -313,11 +320,24 @@ export default function FollowUpsPage() {
           )}
         </div>
 
+        <SelectionBar selection={selection} noun={["follow-up", "follow-ups"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6">
+          <BarButton
+            onClick={() => {
+              setItems((prev) => prev.map((f) => (selection.isSelected(f.id) ? { ...f, status: "Completed" } : f)));
+              selection.clear();
+            }}
+          >
+            Mark completed
+          </BarButton>
+        </SelectionBar>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-y border-border bg-surface-muted/40 text-xs text-muted-foreground">
-                <th className="py-2.5 pl-5 pr-3 font-medium">Lead</th>
+                <th className="w-10 py-2.5 pl-6 pr-0">
+                  <HeaderCheckbox selection={selection} />
+                </th>
+                <th className="py-2.5 pl-3 pr-3 font-medium">Lead</th>
                 <th className="px-3 py-2.5 font-medium">Phone</th>
                 <th className="px-3 py-2.5 font-medium">Counsellor</th>
                 <th className="px-3 py-2.5 font-medium">Date &amp; time</th>
@@ -330,7 +350,7 @@ export default function FollowUpsPage() {
             <tbody>
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center">
+                  <td colSpan={9} className="py-16 text-center">
                     <CalendarCheck2 className="mx-auto size-8 text-muted-foreground/50" />
                     <p className="mt-2 text-sm font-medium text-foreground">No follow-ups found</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">Try another date or clear the filters.</p>
@@ -342,8 +362,11 @@ export default function FollowUpsPage() {
                   const days = daysFromToday(f.date);
                   const done = f.status !== "Pending";
                   return (
-                    <tr key={f.id} className="border-b border-border/70 transition-colors last:border-0 hover:bg-surface-hover">
-                      <td className="py-3 pl-5 pr-3">
+                    <tr key={f.id} className={cn("border-b border-border/70 transition-colors last:border-0 hover:bg-surface-hover", selectedRowClass(selection, f.id))}>
+                      <td className="py-3 pl-6 pr-0 align-middle">
+                        <RowCheckbox selection={selection} id={f.id} label={`Select ${f.leadName}`} />
+                      </td>
+                      <td className="py-3 pl-3 pr-3">
                         <div className="flex items-center gap-2.5">
                           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-muted text-[11px] font-semibold text-muted-foreground">
                             {initialsFor(f.leadName)}

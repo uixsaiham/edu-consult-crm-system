@@ -28,6 +28,45 @@ export interface CountryRecord {
   benefits?: string;
 }
 
+/** Full institution profile as captured by the Add / Edit Institution form. */
+export interface InstitutionDetails {
+  name: string;
+  shortName: string;
+  type: "University" | "College" | "Pathway provider" | "Language school";
+  country: string;
+  city: string;
+  campuses: string;
+  website: string;
+  established: string;
+  ranking: string;
+  logo: string;
+  agreementType: "Direct Agreement" | "Consortium / Aggregator";
+  aggregator: string;
+  commissionRate: string;
+  paymentTerms: string;
+  startDate: string;
+  endDate: string;
+  agreementDoc: string;
+  intakes: string[];
+  tat: string;
+  levels: string[];
+  ieltsMin: string;
+  altTests: string[];
+  applicationFee: string;
+  deposit: string;
+  scholarships: boolean;
+  scholarshipMax: string;
+  programsCount: string;
+  contactName: string;
+  contactRole: string;
+  contactEmail: string;
+  contactPhone: string;
+  admissionsEmail: string;
+  status: "Active" | "Onboarding";
+  featured: boolean;
+  notes: string;
+}
+
 export interface InstitutionRecord {
   id: string;
   name: string;
@@ -41,6 +80,19 @@ export interface InstitutionRecord {
   openIntakes: string[];
   programsCount: number;
   featured: boolean;
+  // Captured by the Add Institution form.
+  type?: InstitutionDetails["type"];
+  website?: string;
+  commissionRate?: number;
+  status?: "Active" | "Onboarding";
+  contactName?: string;
+  contactEmail?: string;
+  /** Hidden from counsellors and applications when false (default true). */
+  active?: boolean;
+  /** Courses published on the public BHE website (default true). */
+  showOnWebsite?: boolean;
+  /** Everything entered in the institution form, for viewing and editing. */
+  details?: InstitutionDetails;
 }
 
 export interface CourseRecord {

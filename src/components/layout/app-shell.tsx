@@ -15,7 +15,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const { signedIn } = useUser();
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="relative flex h-dvh overflow-hidden">
       {!signedIn && <SignedOutScreen />}
 
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
@@ -23,7 +23,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar onMobileMenu={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6">
+        <main className="relative flex-1 overflow-y-auto px-4 pt-3 pb-4 sm:px-6 sm:pt-4 sm:pb-6">
           <div className="mx-auto w-full max-w-[1600px]">{children}</div>
         </main>
       </div>

@@ -171,7 +171,7 @@ export function ApplicationWizard() {
     (personal.firstName?.[0] ?? "").toUpperCase() + (personal.lastName?.[0] ?? "").toUpperCase() || "—";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
@@ -219,7 +219,7 @@ export function ApplicationWizard() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
             <div className="hidden md:col-span-3 md:block">
-              <div className="sticky top-24">
+              <div className="sticky top-0">
                 <Card className="p-5">
                   <WizardStepper
                     steps={steps}

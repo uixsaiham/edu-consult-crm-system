@@ -67,7 +67,7 @@ export function FilterDropdown({
       {open && (
         <div
           className={cn(
-            "absolute left-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl animate-fade-in",
+            "absolute left-0 top-full z-40 mt-1.5 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl animate-fade-in",
             width
           )}
         >
@@ -86,7 +86,8 @@ export function FilterOptions({
   allLabel,
   searchable,
 }: {
-  options: { value: string; label: string; hint?: ReactNode }[];
+  /** `dot` is an optional colour class, e.g. "bg-emerald-500", shown before the label. */
+  options: { value: string; label: string; hint?: ReactNode; dot?: string }[];
   value: string;
   onSelect: (value: string) => void;
   allLabel: string;
@@ -114,7 +115,7 @@ export function FilterOptions({
       <ul role="listbox" className="max-h-64 overflow-y-auto">
         {!q && <Option label={allLabel} selected={value === ""} onClick={() => onSelect("")} />}
         {shown.map((o) => (
-          <Option key={o.value} label={o.label} hint={o.hint} selected={value === o.value} onClick={() => onSelect(o.value)} />
+          <Option key={o.value} label={o.label} hint={o.hint} dot={o.dot} selected={value === o.value} onClick={() => onSelect(o.value)} />
         ))}
         {shown.length === 0 && <li className="px-2.5 py-3 text-center text-xs text-muted-foreground">No matches</li>}
       </ul>
@@ -125,11 +126,13 @@ export function FilterOptions({
 function Option({
   label,
   hint,
+  dot,
   selected,
   onClick,
 }: {
   label: string;
   hint?: ReactNode;
+  dot?: string;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -143,6 +146,7 @@ function Option({
           selected ? "font-medium text-primary" : "text-foreground"
         )}
       >
+        {dot && <span className={cn("size-2 shrink-0 rounded-full", dot)} aria-hidden="true" />}
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {hint && <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{hint}</span>}
         <Check className={cn("size-3.5 shrink-0", selected ? "opacity-100" : "opacity-0")} />
@@ -285,7 +289,7 @@ export function ResetFilters({ onClick }: { onClick: () => void }) {
   );
 }
 
-type OptionInput = string | { value: string; label: string; hint?: ReactNode };
+type OptionInput = string | { value: string; label: string; hint?: ReactNode; dot?: string };
 
 /** One-line filter dropdown for a simple list of options ("" = all). */
 export function SelectFilter({
