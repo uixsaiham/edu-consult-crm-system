@@ -41,6 +41,9 @@
   --chart-10: #94a3b8;
 
   --shadow-color: 220 20% 60%;
+
+  /* Dropdown arrow shared by every <select> (lucide chevron-down, muted colour). */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
@@ -71,6 +74,8 @@
   --ring: #6d93d0;
 
   --shadow-color: 240 60% 2%;
+
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239499b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 @theme inline {
@@ -127,6 +132,26 @@ body {
     radial-gradient(700px circle at 85% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%);
   background-attachment: fixed;
   color: var(--foreground);
+}
+
+/*
+ * One look for every dropdown: same chevron, same distance from the edge, and
+ * room so text never runs under it. Unlayered, so it wins over Tailwind
+ * padding utilities on the right edge.
+ */
+select:not([multiple]):not([size]) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-size: 0.875rem;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+select:disabled {
+  cursor: not-allowed;
 }
 
 ::-webkit-scrollbar {

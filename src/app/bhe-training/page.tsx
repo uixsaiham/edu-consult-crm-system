@@ -1,381 +1,202 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Award,
-  BookOpen,
-  ChevronDown,
-  Clock,
-  Play,
-  Plus,
-  ShieldCheck,
-  Star,
-  X,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, Award, BookOpen, GraduationCap, LineChart, Plus, RotateCcw, SearchX, ShieldCheck, Video } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
-import { mockTrainingCourses, type TrainingCourse } from "@/lib/mock/insights";
-import { cn } from "@/lib/utils";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
+import { useToast } from "@/components/ui/toast";
+import { useUser } from "@/components/layout/user-context";
+import { formatDay } from "@/components/people/people-ui";
+import { ProgressRing } from "@/components/applications/progress-ring";
+import { CourseCard, CourseDialog, LearnerStatusBadge, LevelBadge, durationText, learnerStatuses } from "@/components/training/training-ui";
+import { getStaff } from "@/lib/mock/staff";
+import {
+  addDays,
+  courseCategories,
+  courseMinutes,
+  daysUntil,
+  expiresAt,
+  getCourses,
+  getEnrolments,
+  getVideos,
+  inAudience,
+  nextCourseId,
+  progressOf,
+  saveCourses,
+  saveEnrolments,
+  statusOf,
+  trainingToday,
+  type Course,
+  type Enrolment,
+} from "@/lib/mock/training";
+import { cn } from "@/lib/utils";
 
-export default function BheTrainingPage() {
-  const [courses, setCourses] = useState<TrainingCourse[]>(mockTrainingCourses);
+export default function TrainingHubPage() {
+  const router = useRouter();
+  const { user } = useUser();
+  const me = getStaff().find((s) => s.name === user.name);
+  const [courses, setCourses] = useState<Course[]>(getCourses);
+  const [enrolments, setEnrolments] = useState<Enrolment[]>(getEnrolments);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [category, setCategory] = useState("");
+  const [level, setLevel] = useState("");
+  const [mine, setMine] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [toast, notify] = useToast();
 
-  // Form states
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<TrainingCourse["category"]>("UKVI Visa & Compliance");
-  const [level, setLevel] = useState<TrainingCourse["level"]>("Mandatory Core");
-  const [durationHours, setDurationHours] = useState(4);
-  const [lessonCount, setLessonCount] = useState(8);
-  const [instructor, setInstructor] = useState("David Miller (Compliance Lead)");
-  const [badge, setBadge] = useState("Compliance Pro");
+  useEffect(() => saveCourses(courses), [courses]);
+  useEffect(() => saveEnrolments(enrolments), [enrolments]);
 
-  const categories = [
-    "All",
-    "UKVI Visa & Compliance",
-    "Admissions & Credibility",
-    "Sales & Lead Conversion",
-    "Institution Portals",
-  ];
+  const courseById = useMemo(() => new Map(courses.map((c) => [c.id, c])), [courses]);
+  const myEnrolments = enrolments.filter((e) => e.staffId === me?.id && courseById.get(e.courseId)?.published);
+  const myFor = (id: string) => myEnrolments.find((e) => e.courseId === id);
+  const todo = myEnrolments
+    .filter((e) => !e.completedAt || ["Expired", "Expiring"].includes(statusOf(e, courseById.get(e.courseId)!)))
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const certificates = myEnrolments.filter((e) => e.completedAt);
 
-  const filtered = useMemo(() => {
-    let list = courses;
-    if (activeCategory !== "All") {
-      list = list.filter((c) => c.category === activeCategory);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      list = list.filter(
-        (c) =>
-          c.title.toLowerCase().includes(q) ||
-          c.instructor.toLowerCase().includes(q) ||
-          c.badge.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [courses, search, activeCategory]);
+  const stats = (c: Course) => {
+    const list = enrolments.filter((e) => e.courseId === c.id);
+    const done = list.filter((e) => ["Completed", "Expiring"].includes(statusOf(e, c))).length;
+    return { learners: list.length, completion: list.length ? Math.round((done / list.length) * 100) : 0 };
+  };
 
-  const totalHours = courses.reduce((acc, c) => acc + c.durationHours, 0);
-  const avgAcademyScore = (
-    courses.reduce((acc, c) => acc + c.avgScore, 0) / courses.length
-  ).toFixed(1);
+  const mandatory = enrolments.filter((e) => courseById.get(e.courseId)?.level === "Mandatory");
+  const mandatoryDone = mandatory.filter((e) => ["Completed", "Expiring"].includes(statusOf(e, courseById.get(e.courseId)!))).length;
+  const overdue = enrolments.filter((e) => { const c = courseById.get(e.courseId); return c && statusOf(e, c) === "Overdue"; }).length;
+  const expiring = enrolments.filter((e) => { const c = courseById.get(e.courseId); return c && ["Expiring", "Expired"].includes(statusOf(e, c)); }).length;
 
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title || !instructor) return;
+  const q = search.trim().toLowerCase();
+  const shown = courses.filter((c) => {
+    const e = myFor(c.id);
+    const st = e ? statusOf(e, c) : undefined;
+    return (!category || c.category === category) && (!level || c.level === level) && (!mine || (mine === "Not assigned" ? !e : st === mine)) && (!q || `${c.title} ${c.summary} ${c.instructor} ${c.category}`.toLowerCase().includes(q));
+  });
+  const hasFilters = !!(search || category || level || mine);
 
-    const newCourse: TrainingCourse = {
-      id: `TRN-${Date.now().toString().slice(-4)}`,
-      title,
-      category,
-      level,
-      durationHours,
-      lessonCount,
-      certifiedCount: 0,
-      totalCounselors: 48,
-      avgScore: 90.0,
-      instructor,
-      lastUpdated: "Sep 2026",
-      badge: badge || "Certified",
-    };
-
-    setCourses([newCourse, ...courses]);
-    setTitle("");
-    setAddModalOpen(false);
-  }
+  const addCourse = (draft: Omit<Course, "id" | "updatedAt">) => {
+    const course: Course = { ...draft, id: nextCourseId(draft.title), updatedAt: trainingToday };
+    setCourses((prev) => [course, ...prev]);
+    const assigned = course.published
+      ? getStaff().filter((s) => (s.status === "Active" || s.status === "On leave") && inAudience(course, s)).map((s) => ({ staffId: s.id, courseId: course.id, assignedAt: trainingToday, dueDate: addDays(trainingToday, course.dueDays), completedLessons: [], attempts: [], reminders: [] }))
+      : [];
+    setEnrolments((prev) => [...prev, ...assigned]);
+    notify(course.published ? `${course.title} published and assigned to ${assigned.length} people` : `${course.title} saved as a draft`);
+    setAdding(false);
+  };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            BHE Training & Certifications
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            UKVI compliance certifications, credibility interview coaching, and admissions accreditation modules for counselors.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Training Hub</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Short courses on visa compliance, admissions and the tools we use — with a quiz and certificate at the end of each.</p>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className={buttonPrimary}
-          >
-            <Plus className="size-4" />
-            <span>Add Training Module</span>
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/bhe-training/videos" className={buttonSecondary}><Video className="size-4" /> Video sessions{getVideos().length ? ` · ${getVideos().length}` : ""}</Link>
+          <Link href="/bhe-training/progression" className={buttonSecondary}><LineChart className="size-4" /> Team progress</Link>
+          <button type="button" onClick={() => setAdding(true)} className={buttonPrimary}><Plus className="size-4" /> Add course</button>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Cards */}
+      {/* My learning */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row">
+          <div className="flex items-center gap-4 lg:w-72 lg:shrink-0 lg:flex-col lg:items-start">
+            <ProgressRing percent={myEnrolments.length ? (certificates.filter((e) => statusOf(e, courseById.get(e.courseId)!) !== "Expired").length / myEnrolments.length) * 100 : 0} size={72} />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">My learning</p>
+              <p className="text-lg font-semibold text-foreground">{todo.length ? `${todo.length} course${todo.length === 1 ? "" : "s"} to do` : "You're all caught up"}</p>
+              <p className="text-xs text-muted-foreground">{certificates.length} certificate{certificates.length === 1 ? "" : "s"} · {myEnrolments.length} assigned</p>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            {todo.length ? (
+              <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {todo.slice(0, 4).map((e) => {
+                  const c = courseById.get(e.courseId)!;
+                  const st = statusOf(e, c);
+                  const p = progressOf(e, c);
+                  const d = st === "Expired" || st === "Expiring" ? expiresAt(e, c)! : e.dueDate;
+                  return (
+                    <li key={e.courseId}>
+                      <Link href={`/bhe-training/${c.id}`} className="flex items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:border-border-strong">
+                        <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl text-white", c.color)}><GraduationCap className="size-5" /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-foreground">{c.title}</span>
+                          <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <LearnerStatusBadge status={st} />
+                            <span className={cn(daysUntil(d) < 0 && "font-semibold text-danger")}>{st === "Expired" ? `Expired ${formatDay(d)}` : st === "Expiring" ? `Renew by ${formatDay(d)}` : daysUntil(d) < 0 ? `${-daysUntil(d)} days overdue` : `Due ${formatDay(d)}`}</span>
+                          </span>
+                        </span>
+                        <span className="w-12 shrink-0 text-right text-xs font-semibold tabular-nums text-foreground">{st === "Expired" || st === "Expiring" ? <RotateCcw className="ml-auto size-4 text-warning" /> : `${p}%`}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="flex items-center gap-2 rounded-2xl bg-success-soft px-4 py-3 text-sm text-foreground"><ShieldCheck className="size-4 text-success" /> Every course assigned to you is complete and in date.</p>
+            )}
+            {certificates.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-semibold text-muted-foreground">Certificates:</span>
+                {certificates.map((e) => {
+                  const c = courseById.get(e.courseId)!;
+                  const exp = expiresAt(e, c);
+                  return (
+                    <Link key={e.courseId} href={`/bhe-training/${c.id}`} className="inline-flex items-center gap-1 rounded-full bg-surface-muted px-2.5 py-1 text-[11px] text-foreground hover:bg-surface-hover" title={exp ? `Valid until ${formatDay(exp)}` : "Doesn't expire"}>
+                      <Award className="size-3 text-amber-500" /> {c.title.split(" ").slice(0, 3).join(" ")}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
       <StatGrid>
-        <StatCard icon={ShieldCheck} label="Certified staff" value="96%" note="46 / 48" />
-        <StatCard icon={BookOpen} tone="teal" label="Active modules" value={courses.length} note="Updated 2026" />
-        <StatCard icon={Star} tone="warning" label="Academy avg score" value={`${avgAcademyScore}%`} note="Pass 85%" />
-        <StatCard icon={Clock} tone="violet" label="Curriculum hours" value={totalHours} note="52 lessons" />
+        <StatCard icon={BookOpen} label="Courses" value={courses.filter((c) => c.published).length} note={`${courses.filter((c) => c.level === "Mandatory").length} mandatory`} />
+        <StatCard icon={ShieldCheck} tone={mandatoryDone / Math.max(1, mandatory.length) >= 0.9 ? "success" : "warning"} label="Mandatory done" value={`${Math.round((mandatoryDone / Math.max(1, mandatory.length)) * 100)}%`} note="whole team" />
+        <StatCard icon={AlertTriangle} tone={overdue ? "danger" : "success"} label="Overdue assignments" value={overdue} onClick={() => router.push("/bhe-training/progression?status=Overdue")} />
+        <StatCard icon={RotateCcw} tone={expiring ? "warning" : "success"} label="Renewals due" value={expiring} note="≤30 days" onClick={() => router.push("/bhe-training/progression?status=Expiring")} />
       </StatGrid>
 
-      {/* Category & Search */}
       <FilterBar>
-        <SearchField value={search} onChange={setSearch} placeholder="Search training modules…" label="Search training" />
-        <SelectFilter
-          label="Category"
-          allLabel="All categories"
-          width="w-64"
-          value={activeCategory === "All" ? "" : activeCategory}
-          onChange={(v) => setActiveCategory(v || "All")}
-          options={categories
-            .filter((c) => c !== "All")
-            .map((c) => ({ value: c, label: c, hint: courses.filter((course) => course.category === c).length }))}
-        />
-        {(search || activeCategory !== "All") && (
-          <ResetFilters
-            onClick={() => {
-              setSearch("");
-              setActiveCategory("All");
-            }}
-          />
-        )}
+        <SearchField value={search} onChange={setSearch} placeholder="Course, topic, instructor…" label="Search courses" />
+        <SelectFilter label="Category" value={category} onChange={setCategory} allLabel="All categories" options={courseCategories.map((c) => ({ value: c, label: c, hint: courses.filter((x) => x.category === c).length }))} />
+        <SelectFilter label="Requirement" value={level} onChange={setLevel} allLabel="Any requirement" options={["Mandatory", "Recommended", "Optional"]} />
+        <SelectFilter label="My status" value={mine} onChange={setMine} allLabel="Any status" options={[...learnerStatuses, "Not assigned"]} />
+        {hasFilters && <ResetFilters onClick={() => { setSearch(""); setCategory(""); setLevel(""); setMine(""); }} />}
       </FilterBar>
 
-      {/* Course Cards Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-muted-foreground">
-            No training modules found in this category.
-          </div>
-        ) : (
-          filtered.map((course) => {
-            const completionPct = Math.round(
-              (course.certifiedCount / course.totalCounselors) * 100
-            );
-
-            return (
-              <Card key={course.id} className="flex flex-col justify-between p-5 hover:border-primary/50 transition-colors">
-                <div>
-                  {/* Card Header Tags */}
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                      <Award className="size-3" />
-                      {course.badge}
-                    </span>
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                        course.level === "Mandatory Core"
-                          ? "bg-rose-700/10 text-rose-700 dark:bg-rose-300/10 dark:text-rose-300"
-                          : "bg-blue-700/10 text-blue-700 dark:bg-blue-300/10 dark:text-blue-300"
-                      )}
-                    >
-                      {course.level}
-                    </span>
-                  </div>
-
-                  {/* Course Title */}
-                  <h3 className="mt-3 text-base font-bold text-foreground line-clamp-2">
-                    {course.title}
-                  </h3>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Instructor: <span className="font-medium text-foreground">{course.instructor}</span>
-                  </p>
-
-                  {/* Meta Specs */}
-                  <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="size-3.5 text-muted-foreground" />
-                      <span>{course.durationHours} hrs</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <BookOpen className="size-3.5 text-muted-foreground" />
-                      <span>{course.lessonCount} lessons</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="size-3.5 text-amber-500 fill-amber-500" />
-                      <span>{course.avgScore}%</span>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <span className="text-muted-foreground">
-                        Counselor Completion
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {course.certifiedCount} / {course.totalCounselors} ({completionPct}%)
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full bg-success rounded-full"
-                        style={{ width: `${completionPct}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Action */}
-                <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">
-                    Updated {course.lastUpdated}
-                  </span>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    <Play className="size-3 fill-current" />
-                    <span>View Module</span>
-                  </button>
-                </div>
-              </Card>
-            );
-          })
-        )}
-      </div>
-
-      {/* Add Modal */}
-      {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">Add Training Course</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Publish a new training curriculum for BHE counselors.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(false)}
-                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
-              <div>
-                <label className="text-xs font-semibold text-foreground">
-                  Course Title <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. CAS Financial Evidence Vetting Standard"
-                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Category</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value as TrainingCourse["category"])}
-                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                    >
-                      <option value="UKVI Visa & Compliance">UKVI Visa & Compliance</option>
-                      <option value="Admissions & Credibility">Admissions & Credibility</option>
-                      <option value="Sales & Lead Conversion">Sales & Lead Conversion</option>
-                      <option value="Institution Portals">Institution Portals</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Curriculum Level</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={level}
-                      onChange={(e) => setLevel(e.target.value as TrainingCourse["level"])}
-                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                    >
-                      <option value="Mandatory Core">Mandatory Core</option>
-                      <option value="Advanced Specialist">Advanced Specialist</option>
-                      <option value="Annual Refresher">Annual Refresher</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Duration (Hours)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={durationHours}
-                    onChange={(e) => setDurationHours(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Lesson Count</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={lessonCount}
-                    onChange={(e) => setLessonCount(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    Lead Instructor <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={instructor}
-                    onChange={(e) => setInstructor(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Certification Badge</label>
-                  <input
-                    type="text"
-                    value={badge}
-                    onChange={(e) => setBadge(e.target.value)}
-                    placeholder="e.g. CAS Specialist"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setAddModalOpen(false)}
-                  className={buttonSecondary}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimary}
-                >
-                  Publish Module
-                </button>
-              </div>
-            </form>
-          </div>
+      {shown.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-border px-6 py-16 text-center">
+          <SearchX className="size-6 text-muted-foreground" />
+          <p className="text-sm font-medium text-foreground">No courses match</p>
+          <p className="text-xs text-muted-foreground">Try another category or search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {shown.map((c) => {
+            const e = myFor(c.id);
+            const s = stats(c);
+            return <CourseCard key={c.id} course={c} progress={e ? progressOf(e, c) : undefined} status={e ? statusOf(e, c) : undefined} due={e ? formatDay(e.dueDate) : undefined} learners={s.learners} completion={s.completion} />;
+          })}
         </div>
       )}
+
+      <p className="text-center text-[11px] text-muted-foreground">
+        {courses.length} courses · {durationText(courses.reduce((n, c) => n + courseMinutes(c), 0))} of learning · <LevelBadge level="Mandatory" /> courses are assigned automatically by role
+      </p>
+
+      {adding && <CourseDialog onClose={() => setAdding(false)} onSave={addCourse} />}
+      {toast}
     </div>
   );
 }

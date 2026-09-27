@@ -9,7 +9,6 @@ import {
   BookOpen,
   CalendarPlus,
   FileUp,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
@@ -56,6 +55,7 @@ import {
 } from "@/lib/mock/applications";
 import { useRowSelection } from "@/lib/use-row-selection";
 import { downloadCsv, toCsvRow } from "@/lib/csv";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
 
 type ChannelKey = "all" | "direct" | "agent" | "affiliate";
@@ -151,7 +151,7 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
         (!university || a.university === university) &&
         (!funding || a.funding === funding) &&
         (!q ||
-          `${a.applicant} ${a.id} ${a.phone} ${a.email} ${a.university} ${a.course} ${a.studentId} ${a.source}`
+          `${a.applicant} ${a.id} ${a.phone} ${a.email} ${a.university} ${a.course} ${a.studentId} ${a.source} ${a.partner ?? ""}`
             .toLowerCase()
             .includes(q))
     );
@@ -384,8 +384,8 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
           <AnchoredMenu
             label="Change status of selected"
             align="end"
-            triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-foreground hover:bg-surface-hover"
-            trigger={<>Set status <ChevronDown className="size-3.5" /></>}
+            triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
+            trigger={<>Set status <DropdownChevron /></>}
           >
             {(close) =>
               applicationStages.map((s) => (
@@ -404,8 +404,8 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
           <AnchoredMenu
             label="Assign selected to counsellor"
             align="end"
-            triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-foreground hover:bg-surface-hover"
-            trigger={<><UserCog className="size-3.5" /> Assign <ChevronDown className="size-3.5" /></>}
+            triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2.5 text-xs font-semibold text-foreground hover:bg-surface-hover"
+            trigger={<><UserCog className="size-3.5" /> Assign <DropdownChevron /></>}
           >
             {(close) =>
               allCounsellors.map((c) => (
@@ -548,7 +548,7 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
                             <>
                               <span className={cn("size-1.5 rounded-full", st.dot)} />
                               {a.stage}
-                              <ChevronDown className="size-3 opacity-60" />
+                              <DropdownChevron />
                             </>
                           }
                         >
@@ -581,11 +581,11 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
                         <AnchoredMenu
                           label={`Change funding for ${a.applicant}`}
                           width={180}
-                          triggerClassName={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-md py-1 pl-2 pr-1.5 text-[11px] font-semibold", fundingStyles[a.funding])}
+                          triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-md py-1 pl-2 pr-1.5 text-[11px] font-semibold", fundingStyles[a.funding])}
                           trigger={
                             <>
                               {a.funding}
-                              <ChevronDown className="size-3 opacity-60" />
+                              <DropdownChevron />
                             </>
                           }
                         >
@@ -615,11 +615,11 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
                         <p className="whitespace-nowrap font-medium text-foreground">{a.branch}</p>
                         <AnchoredMenu
                           label={`Reassign ${a.applicant}`}
-                          triggerClassName="inline-flex max-w-[160px] items-center gap-0.5 truncate text-[11px] text-muted-foreground hover:text-primary"
+                          triggerClassName="inline-flex max-w-[160px] items-center gap-1 truncate text-[11px] text-muted-foreground hover:text-primary"
                           trigger={
                             <>
                               <span className="truncate">{a.counsellor}</span>
-                              <ChevronDown className="size-3 shrink-0 opacity-60" />
+                              <DropdownChevron />
                             </>
                           }
                         >

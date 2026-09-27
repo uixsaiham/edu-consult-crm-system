@@ -8,7 +8,7 @@ import { SlideOver } from "@/components/ui/slide-over";
 import { Field, Select, TextInput, Textarea } from "@/components/ui/form-controls";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
-import { FilterBar, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
+import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
 import { useToast } from "@/components/ui/toast";
 import { Avatar, AvatarStack, loadTone, Meter, RoleChip } from "@/components/people/people-ui";
 import { getApplications } from "@/lib/mock/applications";
@@ -80,6 +80,7 @@ export default function TeamsPage() {
       <FilterBar>
         <SearchField value={search} onChange={setSearch} placeholder="Search teams or focus…" label="Search teams" />
         <SelectFilter label="Branch" value={branch} onChange={setBranch} allLabel="All branches" options={[...staffBranches, "All branches"].map((b) => ({ value: b, label: b === "All branches" ? "Cross-branch" : b, hint: teams.filter((t) => t.branch === b).length }))} />
+        {(search || branch) && <ResetFilters onClick={() => { setSearch(""); setBranch(""); }} />}
       </FilterBar>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">

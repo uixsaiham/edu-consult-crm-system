@@ -1,431 +1,252 @@
 "use client";
 
-import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
-import { useRowSelection } from "@/lib/use-row-selection";
-import { downloadCsv, toCsvRow } from "@/lib/csv";
-import { useMemo, useState } from "react";
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  ChevronDown,
-  Download,
-  Plus,
-  Receipt,
-  Wallet,
-  X,
-} from "lucide-react";
+import { useMemo } from "react";
+import Link from "next/link";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { AlertTriangle, ArrowRight, Banknote, CalendarClock, FileText, Handshake, HandCoins, Landmark, Plus, Receipt, Send, TrendingUp, Users, Wallet } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
-import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
-import { mockFinanceTransactions, type FinanceTransaction } from "@/lib/mock/insights";
-import { cn } from "@/lib/utils";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
+import { Legend } from "@/components/performance/perf-ui";
+import { formatDay } from "@/components/people/people-ui";
+import { ClaimStatusBadge } from "@/components/finance/finance-ui";
+import {
+  agreementStatus,
+  daysBetween,
+  financeToday,
+  getAgreements,
+  getClaims,
+  isOverdue,
+  last12Months,
+  money,
+  monthLabel,
+  outstanding,
+  payrollDate,
+  toGbp,
+  type Claim,
+} from "@/lib/mock/finance";
+import { cn } from "@/lib/utils";
 
-export default function FinancePage() {
-  const [transactions, setTransactions] =
-    useState<FinanceTransaction[]>(mockFinanceTransactions);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [addModalOpen, setAddModalOpen] = useState(false);
+const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
 
-  // Form states
-  const [studentName, setStudentName] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [institution, setInstitution] = useState("University of Hertfordshire");
-  const [tuitionFee, setTuitionFee] = useState(16500);
-  const [depositAmount, setDepositAmount] = useState(5000);
-  const [commissionRate, setCommissionRate] = useState(15);
-  const [subAgentPayout, setSubAgentPayout] = useState(0);
-  const [currency, setCurrency] = useState("GBP");
+export default function FinanceOverviewPage() {
+  const claims = useMemo(() => getClaims().filter((c) => c.status !== "Written off"), []);
+  const agreements = getAgreements();
+  const months = last12Months();
+  const yearStart = `${months[0]}-01`;
+  const gbp = (c: Claim, n: number) => toGbp(n, c.currency);
 
-  const filtered = useMemo(() => {
-    let list = transactions;
-    if (statusFilter) list = list.filter((t) => t.status === statusFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      list = list.filter(
-        (t) =>
-          t.studentName.toLowerCase().includes(q) ||
-          t.ref.toLowerCase().includes(q) ||
-          t.institution.toLowerCase().includes(q) ||
-          t.studentId.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [transactions, search, statusFilter]);
+  const received = claims.reduce((n, c) => n + c.payments.filter((p) => p.date >= yearStart).reduce((m, p) => m + gbp(c, p.amount), 0), 0);
+  const agentPaid = claims.filter((c) => c.payoutStatus === "Paid" && (c.payoutDate ?? "") >= yearStart).reduce((n, c) => n + gbp(c, c.agentAmount), 0);
+  const counsellorPaid = claims.filter((c) => c.counsellorStatus === "Paid" && (c.payrollMonth ?? "") >= months[0]).reduce((n, c) => n + c.counsellorAmount, 0);
+  const net = received - agentPaid - counsellorPaid;
+  const outstandingTotal = claims.reduce((n, c) => n + gbp(c, outstanding(c)), 0);
+  const overdue = claims.filter(isOverdue);
+  const overdueTotal = overdue.reduce((n, c) => n + gbp(c, outstanding(c)), 0);
+  const agentDue = claims.filter((c) => c.payoutStatus === "Due");
+  const ready = claims.filter((c) => c.status === "Ready to invoice");
+  const disputed = claims.filter((c) => c.status === "Disputed");
+  const nextPayroll = [...new Set(claims.filter((c) => c.counsellorStatus === "Approved").map((c) => c.payrollMonth!))].sort()[0];
+  const payrollDue = claims.filter((c) => c.counsellorStatus === "Approved" && c.payrollMonth === nextPayroll).reduce((n, c) => n + c.counsellorAmount, 0);
+  const expiring = agreements.filter((a) => agreementStatus(a) !== "Active");
 
-  const totalGrossCommission = transactions.reduce((acc, t) => acc + t.commissionAmount, 0);
-  const totalNetRevenue = transactions.reduce((acc, t) => acc + t.netRevenue, 0);
-  const totalAgentPayout = transactions.reduce((acc, t) => acc + t.subAgentPayout, 0);
-  const totalDeposits = transactions.reduce((acc, t) => acc + t.depositAmount, 0);
+  const monthly = months.map((m) => ({
+    month: monthLabel(m),
+    Invoiced: claims.filter((c) => c.invoiceDate?.startsWith(m)).reduce((n, c) => n + gbp(c, c.amount), 0),
+    Received: claims.reduce((n, c) => n + c.payments.filter((p) => p.date.startsWith(m)).reduce((s, p) => s + gbp(c, p.amount), 0), 0),
+  }));
 
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!studentName || !studentId) return;
+  const buckets = [
+    { label: "Not yet due", test: (c: Claim) => !isOverdue(c), tone: "bg-primary" },
+    { label: "1–30 days overdue", test: (c: Claim) => isOverdue(c) && daysBetween(c.dueDate!) <= 30, tone: "bg-warning" },
+    { label: "31–60 days", test: (c: Claim) => isOverdue(c) && daysBetween(c.dueDate!) > 30 && daysBetween(c.dueDate!) <= 60, tone: "bg-orange-500" },
+    { label: "61–90 days", test: (c: Claim) => isOverdue(c) && daysBetween(c.dueDate!) > 60 && daysBetween(c.dueDate!) <= 90, tone: "bg-danger" },
+    { label: "Over 90 days", test: (c: Claim) => isOverdue(c) && daysBetween(c.dueDate!) > 90, tone: "bg-danger" },
+  ].map((b) => {
+    const list = claims.filter((c) => outstanding(c) > 0 && b.test(c));
+    return { ...b, count: list.length, value: list.reduce((n, c) => n + gbp(c, outstanding(c)), 0) };
+  });
+  const maxBucket = Math.max(1, ...buckets.map((b) => b.value));
 
-    const commAmt = Math.round((tuitionFee * commissionRate) / 100);
-    const net = Math.max(0, commAmt - subAgentPayout);
+  const bySource = (["Direct", "Agent", "Affiliate"] as const).map((s) => {
+    const list = claims.filter((c) => c.channel === s && (c.invoiceDate ?? c.censusDate) >= yearStart);
+    const earned = list.reduce((n, c) => n + gbp(c, c.amount), 0);
+    const payouts = list.reduce((n, c) => n + gbp(c, c.agentAmount) + c.counsellorAmount, 0);
+    return { s, students: list.length, earned, keep: earned - payouts };
+  });
+  const maxSource = Math.max(1, ...bySource.map((x) => x.earned));
 
-    const newTx: FinanceTransaction = {
-      id: `FTX-${Date.now().toString().slice(-4)}`,
-      ref: `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      studentId,
-      studentName,
-      institution,
-      country: "United Kingdom",
-      tuitionFee,
-      depositAmount,
-      commissionRate,
-      commissionAmount: commAmt,
-      subAgentPayout,
-      netRevenue: net,
-      currency,
-      status: "Invoice Approved",
-      invoiceDate: new Date().toISOString().split("T")[0],
-    };
-
-    setTransactions([newTx, ...transactions]);
-    setStudentName("");
-    setStudentId("");
-    setAddModalOpen(false);
-  }
-
-  const selection = useRowSelection(filtered.map((row) => row.id));
-  const exportSelected = () =>
-    downloadCsv(`finance-transactions-selected.csv`, transactions.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+  const unis = [...new Set(claims.map((c) => c.university))]
+    .map((u) => {
+      const list = claims.filter((c) => c.university === u && (c.invoiceDate ?? c.censusDate) >= yearStart);
+      return { u, earned: list.reduce((n, c) => n + gbp(c, c.amount), 0), owed: claims.filter((c) => c.university === u).reduce((n, c) => n + gbp(c, outstanding(c)), 0), students: list.length };
+    })
+    .filter((x) => x.earned > 0)
+    .sort((a, b) => b.earned - a.earned)
+    .slice(0, 8);
+  const maxUni = Math.max(1, ...unis.map((x) => x.earned));
+  const chase = [...overdue].sort((a, b) => gbp(b, outstanding(b)) - gbp(a, outstanding(a))).slice(0, 6);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Finance & Commission Ledger
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track university institutional commissions, deposit milestones, B2B partner disbursements, and audited revenue.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Finance Overview</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Commission earned from universities, what&apos;s still owed, and what BHE pays out to agents and counsellors. Last 12 months, in GBP.</p>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className={buttonPrimary}
-          >
-            <Plus className="size-4" />
-            <span>Record Invoice / Commission</span>
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/finance/payments" className={buttonSecondary}><Receipt className="size-4" /> Payments</Link>
+          <Link href="/finance/new" className={buttonPrimary}><Plus className="size-4" /> Add commission</Link>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Cards */}
       <StatGrid>
-        <StatCard icon={Receipt} label="Gross commissions" value={`£${totalGrossCommission.toLocaleString()}`} note="Billed" />
-        <StatCard icon={ArrowDownRight} tone="success" label="Net BHE revenue" value={`£${totalNetRevenue.toLocaleString()}`} note="After split" />
-        <StatCard icon={ArrowUpRight} tone="warning" label="Sub-agent payouts" value={`£${totalAgentPayout.toLocaleString()}`} note="B2B share" />
-        <StatCard icon={Wallet} tone="violet" label="Tuition deposits" value={`£${totalDeposits.toLocaleString()}`} note="Verified" />
+        <StatCard icon={Wallet} tone="success" label="Received · 12 months" value={money(received, "GBP", true)} />
+        <StatCard icon={TrendingUp} tone="primary" label="Net to BHE" value={money(net, "GBP", true)} note={`${received ? Math.round((net / received) * 100) : 0}% kept`} />
+        <StatCard icon={Landmark} tone={overdueTotal ? "danger" : "success"} label="Owed to BHE" value={money(outstandingTotal, "GBP", true)} note={`${money(overdueTotal, "GBP", true)} late`} />
+        <StatCard icon={HandCoins} tone="warning" label="Due to agents" value={money(agentDue.reduce((n, c) => n + gbp(c, c.agentAmount), 0), "GBP", true)} note={`${agentDue.length} payouts`} />
       </StatGrid>
 
-      {/* Filter and Search Bar */}
-      <FilterBar>
-        <SearchField value={search} onChange={setSearch} placeholder="Search invoice, student, ID, university…" label="Search transactions" />
-        <SelectFilter
-          label="Invoice status"
-          allLabel="All statuses"
-          width="w-64"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={["Paid", "Invoice Approved", "Pending University Approval", "Under Review"].map((st) => ({
-            value: st,
-            label: st,
-            hint: transactions.filter((t) => t.status === st).length,
-          }))}
-        />
-        {(search || statusFilter) && (
-          <ResetFilters
-            onClick={() => {
-              setSearch("");
-              setStatusFilter("");
-            }}
-          />
-        )}
-      </FilterBar>
+      {/* To-do strip */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <Todo href="/finance/payments?tab=ready" icon={Send} tone="violet" title={`${ready.length} to invoice`} detail={money(ready.reduce((n, c) => n + gbp(c, c.amount), 0))} />
+        <Todo href="/finance/payments?tab=overdue" icon={AlertTriangle} tone="danger" title={`${overdue.length} overdue`} detail={`${money(overdueTotal)} to chase`} />
+        <Todo href="/finance/payments?tab=disputed" icon={FileText} tone="warning" title={`${disputed.length} disputed`} detail={money(disputed.reduce((n, c) => n + gbp(c, outstanding(c)), 0))} />
+        <Todo href="/finance/counsellor-commission" icon={Users} tone="primary" title={nextPayroll ? `Payroll ${formatDay(payrollDate(nextPayroll)).replace(/ \d{4}$/, "")}` : "No payroll due"} detail={`${money(payrollDue)} to counsellors`} />
+        <Todo href="/finance/universities" icon={Handshake} tone={expiring.length ? "warning" : "success"} title={`${expiring.length} to renew`} detail="agreements expiring" />
+      </div>
 
-      {/* Transactions Table */}
-      <Card>
-        <CardHeader
-          title="Commission Ledger Records"
-          description={`Showing ${filtered.length} of ${transactions.length} institutional payment ledger entries.`}
-        />
-
-        <SelectionBar selection={selection} noun={["transaction", "transactions"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[840px] border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="w-10 py-2.5 pl-6 pr-0">
-                  <HeaderCheckbox selection={selection} />
-                </th>
-                <th className="py-3 pl-3 pr-4">Invoice & Student</th>
-                <th className="py-3 px-4">Institution & Market</th>
-                <th className="py-3 px-4">Tuition & Deposit</th>
-                <th className="py-3 px-4">Commission %</th>
-                <th className="py-3 px-4">Gross Receivable</th>
-                <th className="py-3 px-4">Net BHE Revenue</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 pl-4 pr-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="py-12 text-center text-muted-foreground">
-                    No financial ledger records matched your search.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((tx) => (
-                  <tr key={tx.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, tx.id))}>
-                    <td className="py-3 pl-6 pr-0 align-middle">
-                      <RowCheckbox selection={selection} id={tx.id} label={`Select ${tx.studentName}`} />
-                    </td>
-                    <td className="py-3.5 pl-3 pr-4">
-                      <div>
-                        <span className="font-mono font-bold text-foreground block">
-                          {tx.ref}
-                        </span>
-                        <span className="font-semibold text-foreground text-sm block mt-0.5">
-                          {tx.studentName}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground block font-mono">
-                          {tx.studentId}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span className="font-medium text-foreground block">
-                        {tx.institution}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {tx.country}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span className="font-semibold text-foreground block">
-                        £{tx.tuitionFee.toLocaleString()}
-                      </span>
-                      <span className="text-[11px] text-success">
-                        Deposit: £{tx.depositAmount.toLocaleString()}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span className="inline-flex items-center rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
-                        {tx.commissionRate}%
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span className="font-bold text-foreground block text-sm">
-                        £{tx.commissionAmount.toLocaleString()}
-                      </span>
-                      {tx.subAgentPayout > 0 && (
-                        <span className="text-[11px] text-muted-foreground">
-                          Agent Share: £{tx.subAgentPayout.toLocaleString()}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span className="font-bold text-success block text-sm">
-                        £{tx.netRevenue.toLocaleString()}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {tx.invoiceDate}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 align-top">
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                          tx.status === "Paid"
-                            ? "border border-success/20 bg-success/10 text-success"
-                            : tx.status === "Invoice Approved"
-                            ? "border border-blue-500/20 bg-blue-700/10 text-blue-700 dark:bg-blue-300/10 dark:text-blue-300"
-                            : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
-                        )}
-                      >
-                        {tx.status}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 pl-4 pr-6 align-top text-right">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
-                      >
-                        <Download className="size-3" />
-                        <span>PDF</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Record Modal */}
-      {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">Record Commission Invoice</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Log university tuition payment and commission invoice milestone.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(false)}
-                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <X className="size-5" />
-              </button>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Card>
+          <CardHeader icon={Banknote} title="Invoiced vs received" subtitle="Commission per month, GBP" />
+          <div className="px-4 pb-2 pt-3 sm:px-6">
+            <div className="h-64 min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthly} margin={{ top: 6, right: 6, left: 0, bottom: 0 }} barGap={2} barCategoryGap="28%">
+                  <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="4 8" />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} tick={axisTick} interval="preserveStartEnd" />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={6} tick={axisTick} width={48} tickFormatter={(v: number) => money(v, "GBP", true)} />
+                  <Tooltip content={<MoneyTooltip />} cursor={{ fill: "var(--surface-hover)" }} />
+                  <Bar dataKey="Invoiced" fill="var(--chart-4)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Received" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-
-            <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    Student Full Name <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    placeholder="e.g. Mahir Faysal"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    Student ID <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="BHE-900239280"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-foreground">
-                  Host University <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  placeholder="e.g. University of Hertfordshire"
-                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Total Tuition Fee (£)</label>
-                  <input
-                    type="number"
-                    min={1000}
-                    value={tuitionFee}
-                    onChange={(e) => setTuitionFee(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Deposit Paid (£)</label>
-                  <input
-                    type="number"
-                    min={500}
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Currency</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                    >
-                      <option value="GBP">GBP (£)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="AUD">AUD ($)</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Commission (%)</label>
-                  <input
-                    type="number"
-                    min={5}
-                    max={30}
-                    value={commissionRate}
-                    onChange={(e) => setCommissionRate(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Sub-Agent Share</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={subAgentPayout}
-                    onChange={(e) => setSubAgentPayout(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setAddModalOpen(false)}
-                  className={buttonSecondary}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimary}
-                >
-                  Generate Invoice Record
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-3">
+            <Legend items={[{ label: "Invoiced", color: "var(--chart-4)" }, { label: "Received", color: "var(--chart-1)" }]} />
+            <span className="text-xs text-muted-foreground">Total received {money(received)}</span>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader icon={CalendarClock} iconBg="bg-danger-soft" iconColor="text-danger" title="What universities owe" subtitle={`${money(outstandingTotal)} outstanding, by age`} />
+          <ul className="flex flex-col gap-3.5 px-6 pb-6 pt-4">
+            {buckets.map((b) => (
+              <li key={b.label}>
+                <p className="mb-1 flex justify-between gap-2 text-xs">
+                  <span className="text-foreground">{b.label}</span>
+                  <span className="tabular-nums text-muted-foreground"><span className="font-semibold text-foreground">{money(b.value)}</span> · {b.count}</span>
+                </p>
+                <span className="block h-2 overflow-hidden rounded-full bg-surface-hover">
+                  <span className={cn("block h-full rounded-full", b.tone)} style={{ width: `${Math.max(b.value ? 2 : 0, (b.value / maxBucket) * 100)}%` }} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card>
+          <CardHeader icon={Landmark} title="Top universities" subtitle="Commission earned in the last 12 months" action={<Link href="/finance/universities" className="text-xs font-semibold text-primary hover:underline">All universities</Link>} />
+          <ul className="mt-3 flex flex-col divide-y divide-border border-t border-border">
+            {unis.map((x) => (
+              <li key={x.u} className="px-6 py-2.5">
+                <p className="mb-1 flex justify-between gap-3 text-xs">
+                  <span className="truncate font-medium text-foreground">{x.u}</span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground"><span className="font-semibold text-foreground">{money(x.earned)}</span> · {x.students} students{x.owed ? <span className="text-danger"> · {money(x.owed, "GBP", true)} owed</span> : ""}</span>
+                </p>
+                <span className="block h-1.5 overflow-hidden rounded-full bg-surface-hover"><span className="block h-full rounded-full bg-primary" style={{ width: `${(x.earned / maxUni) * 100}%` }} /></span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card>
+          <CardHeader icon={TrendingUp} title="Where the money comes from" subtitle="Earned vs what BHE keeps after agent and counsellor commission" />
+          <ul className="flex flex-col gap-4 px-6 pb-4 pt-4">
+            {bySource.map((x) => (
+              <li key={x.s}>
+                <p className="mb-1.5 flex justify-between gap-2 text-xs">
+                  <span className="font-medium text-foreground">{x.s === "Affiliate" ? "Ambassador referrals" : x.s === "Agent" ? "Agent students" : "Direct students"} <span className="font-normal text-muted-foreground">· {x.students}</span></span>
+                  <span className="tabular-nums text-muted-foreground"><span className="font-semibold text-foreground">{money(x.keep)}</span> kept of {money(x.earned)}</span>
+                </p>
+                <span className="relative block h-2.5 overflow-hidden rounded-full bg-surface-hover">
+                  <span className="absolute inset-y-0 left-0 rounded-full bg-primary/30" style={{ width: `${(x.earned / maxSource) * 100}%` }} />
+                  <span className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${(x.keep / maxSource) * 100}%` }} />
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-border px-6 py-3">
+            <Legend items={[{ label: "BHE keeps", color: "var(--primary)" }, { label: "Paid on to agents and counsellors", color: "color-mix(in srgb, var(--primary) 30%, transparent)" }]} />
+          </div>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader icon={AlertTriangle} iconBg="bg-danger-soft" iconColor="text-danger" title="Chase these first" subtitle={chase.length ? "Largest overdue invoices" : "Nothing overdue"} action={<Link href="/finance/payments?tab=overdue" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">All overdue <ArrowRight className="size-3.5" /></Link>} />
+        {chase.length ? (
+          <ul className="mt-3 divide-y divide-border border-t border-border">
+            {chase.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3 text-xs">
+                <span className="w-28 font-mono font-semibold text-foreground">{c.invoiceNo}</span>
+                <span className="min-w-0 flex-1 basis-48">
+                  <span className="block truncate font-medium text-foreground">{c.university}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">{c.student} · {c.intake}</span>
+                </span>
+                <span className="font-semibold tabular-nums text-danger">{money(outstanding(c), c.currency)}</span>
+                <span className="text-muted-foreground">{daysBetween(c.dueDate!)} days late</span>
+                <ClaimStatusBadge claim={c} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="px-6 pb-6 pt-3 text-sm text-muted-foreground">Every invoice is within its payment terms.</p>
+        )}
+        <p className="border-t border-border px-6 py-3 text-[11px] text-muted-foreground">Figures as of {formatDay(financeToday)}. Non-GBP amounts are converted at fixed reporting rates.</p>
+      </Card>
+    </div>
+  );
+}
+
+function Todo({ href, icon: Icon, tone, title, detail }: { href: string; icon: typeof Send; tone: "violet" | "danger" | "warning" | "primary" | "success"; title: string; detail: string }) {
+  const tones = { violet: "bg-violet-500/10 text-violet-600 dark:text-violet-400", danger: "bg-danger-soft text-danger", warning: "bg-warning-soft text-warning", primary: "bg-primary-soft text-primary", success: "bg-success-soft text-success" };
+  return (
+    <Link href={href} className="card-shadow group flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong">
+      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", tones[tone])}><Icon className="size-4" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-foreground">{title}</span>
+        <span className="block truncate text-xs text-muted-foreground">{detail}</span>
+      </span>
+      <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+    </Link>
+  );
+}
+
+function MoneyTooltip({ active, payload, label }: { active?: boolean; payload?: { name?: string; value?: number; color?: string }[]; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="card-shadow rounded-xl border border-border bg-surface px-3.5 py-2.5 text-xs">
+      <p className="mb-1 font-medium text-foreground">{label}</p>
+      {payload.map((p) => (
+        <p key={p.name} className="flex items-center gap-2">
+          <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} />
+          <span className="text-muted-foreground">{p.name}</span>
+          <span className="ml-auto pl-4 font-semibold tabular-nums text-foreground">{money(Number(p.value ?? 0))}</span>
+        </p>
+      ))}
     </div>
   );
 }

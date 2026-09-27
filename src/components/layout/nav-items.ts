@@ -115,10 +115,10 @@ export const navSections: NavSection[] = [
         href: "/courses",
         icon: BookOpen,
         children: [
-          { label: "Add Courses", href: "/courses?action=add" },
+          { label: "Add Courses", href: "/courses/new" },
           { label: "All Courses", href: "/courses" },
-          { label: "Course Category", href: "/courses?view=category" },
-          { label: "Course Level", href: "/courses?view=level" },
+          { label: "Course Category", href: "/courses/categories" },
+          { label: "Course Level", href: "/courses/levels" },
         ],
       },
       {
@@ -127,10 +127,10 @@ export const navSections: NavSection[] = [
         icon: Building2,
         children: [
           { label: "Branch Office", href: "/office" },
-          { label: "Front Office", href: "/office?view=front-office" },
-          { label: "Essential Folder", href: "/office?view=essential-folder" },
-          { label: "Add General Questions", href: "/office?action=add-questions" },
-          { label: "News Feed", href: "/office?view=news-feed" },
+          { label: "Front Office", href: "/office/front-office" },
+          { label: "Essential Folder", href: "/office/essential-folder" },
+          { label: "Add General Questions", href: "/office/general-questions" },
+          { label: "News Feed", href: "/office/news-feed" },
         ],
       },
       {
@@ -151,10 +151,10 @@ export const navSections: NavSection[] = [
         href: "/agent-management",
         icon: UserCog,
         children: [
-          { label: "Add New Agent", href: "/agent-management?action=add" },
-          { label: "Pending Agents", href: "/agent-management?status=pending" },
+          { label: "Add New Agent", href: "/agent-management/new" },
+          { label: "Pending Agents", href: "/agent-management/pending" },
           { label: "View Agents", href: "/agent-management" },
-          { label: "My Ambassadors", href: "/agent-management?view=ambassadors", badge: "New" },
+          { label: "My Ambassadors", href: "/agent-management/ambassadors", badge: "New" },
         ],
       },
     ],
@@ -167,9 +167,9 @@ export const navSections: NavSection[] = [
         href: "/target-setup",
         icon: Target,
         children: [
-          { label: "Add Target", href: "/target-setup?action=add" },
+          { label: "Add Target", href: "/target-setup/new" },
           { label: "Target List", href: "/target-setup" },
-          { label: "Target Overview", href: "/target-setup?view=overview" },
+          { label: "Target Overview", href: "/target-setup/overview" },
         ],
       },
       {
@@ -178,11 +178,11 @@ export const navSections: NavSection[] = [
         icon: LineChart,
         children: [
           { label: "Finance Overview", href: "/finance" },
-          { label: "Agent Commission", href: "/finance?view=agent-commission" },
-          { label: "Counsellor Commission", href: "/finance?view=counsellor-commission" },
-          { label: "Add New Commission", href: "/finance?action=add-commission" },
-          { label: "University Commission List", href: "/finance?view=university-commission" },
-          { label: "Total Commission Payments", href: "/finance?view=total-payments" },
+          { label: "Agent Commission", href: "/finance/agent-commission" },
+          { label: "Counsellor Commission", href: "/finance/counsellor-commission" },
+          { label: "Add New Commission", href: "/finance/new" },
+          { label: "University Commission List", href: "/finance/universities" },
+          { label: "Total Commission Payments", href: "/finance/payments" },
         ],
       },
       {
@@ -191,7 +191,9 @@ export const navSections: NavSection[] = [
         icon: GraduationCap,
         children: [
           { label: "Training Hub", href: "/bhe-training" },
-          { label: "Training Progression", href: "/bhe-training?view=progression" },
+          { label: "Training Periods", href: "/bhe-training/programmes" },
+          { label: "Video Sessions", href: "/bhe-training/videos" },
+          { label: "Training Progression", href: "/bhe-training/progression" },
         ],
       },
     ],

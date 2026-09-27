@@ -7,7 +7,6 @@ import {
   ArrowRight,
   CalendarClock,
   Check,
-  ChevronDown,
   ClipboardList,
   GraduationCap,
   Mail,
@@ -36,6 +35,7 @@ import {
 import { cn, initialsFor } from "@/lib/utils";
 import { AnchoredMenu, MenuItem } from "./anchored-menu";
 import { formatCreated, whatsappLink } from "./format";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 
 
 /** The happy path shown in the progress tracker. */
@@ -90,12 +90,12 @@ export function ApplicationDrawer({
             <div className="flex flex-wrap gap-1.5">
               <AnchoredMenu
                 label="Change application status"
-                triggerClassName={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold", stage.bg, stage.text)}
+                triggerClassName={cn("inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-2 text-[11px] font-semibold", stage.bg, stage.text)}
                 trigger={
                   <>
                     <span className={cn("size-1.5 rounded-full", stage.dot)} />
                     {app.stage}
-                    <ChevronDown className="size-3" />
+                    <DropdownChevron />
                   </>
                 }
               >
@@ -109,11 +109,11 @@ export function ApplicationDrawer({
               </AnchoredMenu>
               <AnchoredMenu
                 label="Change fees and funding"
-                triggerClassName={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold", fundingStyles[app.funding])}
+                triggerClassName={cn("inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-2 text-[11px] font-semibold", fundingStyles[app.funding])}
                 trigger={
                   <>
                     {app.funding === "N/A" ? "Funding: N/A" : app.funding}
-                    <ChevronDown className="size-3" />
+                    <DropdownChevron />
                   </>
                 }
               >

@@ -75,10 +75,16 @@ const rawLeads: Omit<LeadRow, "id" | "initials">[] = [
   { name: "Robiul Awal", phone: "+8801812098765", email: "robiul.awal@gmail.com", country: "Bangladesh", branch: "", counsellor: "", status: "New", leadNote: "", leadSource: "Facebook Ads - Sep Intake", createdDate: "2026-09-09" },
 ];
 
+/** Leads created elsewhere this session (e.g. a front-desk walk-in), newest first. */
+const addedLeads: LeadRow[] = [];
+export function addLead(lead: LeadRow) {
+  addedLeads.unshift(lead);
+}
+
 export function getLeads(): LeadRow[] {
-  return rawLeads.map((lead, i) => ({
+  return [...addedLeads, ...rawLeads.map((lead, i) => ({
     ...lead,
     id: `LD-${(4820 - i).toString().padStart(4, "0")}`,
     initials: initialsFor(lead.name),
-  }));
+  }))];
 }

@@ -1,447 +1,323 @@
 "use client";
 
-import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
-import { useRowSelection } from "@/lib/use-row-selection";
-import { downloadCsv, toCsvRow } from "@/lib/csv";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   Building2,
-  CheckCircle2,
-  ChevronDown,
+  CalendarOff,
+  Clock3,
+  DoorOpen,
+  Download,
+  Eye,
+  FileText,
+  Mail,
   MapPin,
+  MessageCircle,
+  PencilLine,
   Phone,
   Plus,
-  TrendingUp,
   Users,
-  X,
+  UsersRound,
 } from "lucide-react";
-import { Card, CardHeader } from "@/components/ui/card";
 import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { FilterBar, ResetFilters, SearchField, SelectFilter } from "@/components/ui/filter-dropdown";
-import { mockOffices, type OfficeRecord } from "@/lib/mock/directory";
-import { cn } from "@/lib/utils";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
+import { SlideOver } from "@/components/ui/slide-over";
+import { useToast } from "@/components/ui/toast";
+import { Avatar, formatDay } from "@/components/people/people-ui";
+import { BranchDialog } from "@/components/office/branch-dialog";
+import { EmptyState, OpenPill } from "@/components/office/office-ui";
+import { getApplications } from "@/lib/mock/applications";
+import { getLeads } from "@/lib/mock/leads";
+import { getStaff, getStaffMember } from "@/lib/mock/staff";
+import { getBranches, getVisits, localTime, officeToday, openState, saveBranches, type Branch } from "@/lib/mock/office";
+import { useNow } from "@/lib/use-now";
+import { downloadCsv } from "@/lib/csv";
+import { cn } from "@/lib/utils";
 
-export default function OfficesPage() {
-  const [offices, setOffices] = useState<OfficeRecord[]>(mockOffices);
+const month = officeToday.slice(0, 7);
+
+function branchStats(name: string) {
+  const staff = getStaff().filter((s) => s.branch === name && s.status !== "Inactive");
+  const leads = getLeads().filter((l) => l.branch === name);
+  const apps = getApplications().filter((a) => a.branch === name);
+  return {
+    staff,
+    leadsMonth: leads.filter((l) => l.createdDate.startsWith(month)).length,
+    appsMonth: apps.filter((a) => a.createdAt.startsWith(month)).length,
+    apps: apps.length,
+    enrolled: apps.filter((a) => a.stage === "Enrolled").length,
+    visitorsToday: getVisits().filter((v) => v.branch === name && v.checkedInAt).length,
+  };
+}
+
+export default function BranchOfficePage() {
+  const [list, setList] = useState<Branch[]>(getBranches);
   const [search, setSearch] = useState("");
-  const [countryFilter, setCountryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [country, setCountry] = useState("");
+  const [status, setStatus] = useState("");
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Branch | "new" | null>(null);
+  const [toast, notify] = useToast();
+  const now = useNow();
 
-  // Form states
-  const [name, setName] = useState("");
-  const [city, setCity] = useState("");
-  const [country, setCountry] = useState("Bangladesh");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [manager, setManager] = useState("");
-  const [counselors, setCounselors] = useState(6);
-  const [target, setTarget] = useState(200);
+  useEffect(() => saveBranches(list), [list]);
 
-  const filtered = useMemo(() => {
-    let list = offices;
-    if (countryFilter) list = list.filter((o) => o.country === countryFilter);
-    if (statusFilter) list = list.filter((o) => o.status === statusFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      list = list.filter(
-        (o) =>
-          o.name.toLowerCase().includes(q) ||
-          o.city.toLowerCase().includes(q) ||
-          o.manager.toLowerCase().includes(q) ||
-          o.country.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [offices, search, countryFilter, statusFilter]);
+  const stats = useMemo(() => new Map(list.map((b) => [b.id, branchStats(b.name)])), [list]);
+  const filtered = list.filter((b) => {
+    const q = search.trim().toLowerCase();
+    return (!country || b.country === country) && (!status || b.status === status) && (!q || `${b.name} ${b.city} ${b.address} ${b.email} ${b.phone}`.toLowerCase().includes(q));
+  });
+  const openNow = now ? list.filter((b) => openState(b, new Date(now)).open).length : null;
+  const totals = [...stats.values()].reduce((t, s) => ({ staff: t.staff + s.staff.length, leads: t.leads + s.leadsMonth, apps: t.apps + s.appsMonth }), { staff: 0, leads: 0, apps: 0 });
+  const viewing = list.find((b) => b.id === viewingId);
 
-  const totalCounselors = offices.reduce((acc, o) => acc + o.counselorCount, 0);
-  const totalLeads = offices.reduce((acc, o) => acc + o.leadsThisMonth, 0);
-  const totalActual = offices.reduce((acc, o) => acc + o.enrolledActual, 0);
-  const totalTarget = offices.reduce((acc, o) => acc + o.enrolledTarget, 0);
-  const overallPacing = Math.round((totalActual / totalTarget) * 100);
-
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !city || !manager) return;
-
-    const newOffice: OfficeRecord = {
-      id: `OFF-${city.substring(0, 3).toUpperCase()}-${Date.now().toString().slice(-3)}`,
-      name,
-      city,
-      country,
-      address: address || `${city} Central Branch`,
-      phone: phone || "+880 2 0000000",
-      email: email || `${city.toLowerCase()}@bhe-consultancy.co.uk`,
-      manager,
-      counselorCount: counselors,
-      leadsThisMonth: 0,
-      enrolledTarget: target,
-      enrolledActual: 0,
-      conversionRate: 0,
-      status: "Active",
-    };
-
-    setOffices([newOffice, ...offices]);
-    setName("");
-    setCity("");
-    setAddress("");
-    setPhone("");
-    setEmail("");
-    setManager("");
-    setAddModalOpen(false);
-  }
-
-  const selection = useRowSelection(filtered.map((row) => row.id));
-  const exportSelected = () =>
-    downloadCsv(`offices-selected.csv`, offices.filter((row) => selection.isSelected(row.id)).map(toCsvRow));
+  const exportCsv = () =>
+    downloadCsv(
+      "branch-offices.csv",
+      filtered.map((b) => {
+        const s = stats.get(b.id)!;
+        return {
+          id: b.id, branch: b.name, type: b.type, status: b.status, address: b.address, city: b.city, country: b.country, phone: b.phone, whatsapp: b.whatsapp, email: b.email,
+          manager: getStaffMember(b.managerId)?.name ?? "", staff: s.staff.length, rooms: b.rooms, leadsThisMonth: s.leadsMonth, applicationsThisMonth: s.appsMonth, enrolled: s.enrolled,
+          hours: b.hours.map((h) => `${h.day} ${h.closed ? "closed" : `${h.open}-${h.close}`}`).join("; "),
+        };
+      })
+    );
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Offices & Regional Branches
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage BHE global branch network, counselor allocations, monthly intake pacing, and conversion performance.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Branch Offices</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Where BHE operates — contact details, opening hours, teams and how each branch is performing.</p>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className={buttonPrimary}
-          >
-            <Plus className="size-4" />
-            <span>Open New Branch</span>
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={exportCsv} className={buttonSecondary}><Download className="size-4" /> Export</button>
+          <button type="button" onClick={() => setEditing("new")} className={buttonPrimary}><Plus className="size-4" /> Add branch</button>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Cards */}
       <StatGrid>
-        <StatCard icon={Building2} label="Total branches" value={offices.length} note="UK & BD" />
-        <StatCard icon={Users} tone="teal" label="Active counsellors" value={totalCounselors} />
-        <StatCard icon={TrendingUp} tone="warning" label="Inquiries this month" value={totalLeads.toLocaleString()} note="+14% MoM" />
-        <StatCard icon={CheckCircle2} tone="success" label="Intake target pacing" value={`${overallPacing}%`} note={`${totalActual} / ${totalTarget}`} />
+        <StatCard icon={DoorOpen} tone="success" label="Open right now" value={openNow ?? "…"} note={`of ${list.length}`} />
+        <StatCard icon={Users} label="Team members" value={totals.staff} />
+        <StatCard icon={UsersRound} tone="primary" label="Leads this month" value={totals.leads} />
+        <StatCard icon={FileText} tone="violet" label="Applications this month" value={totals.apps} />
       </StatGrid>
 
-      {/* Filter and Search Bar */}
       <FilterBar>
-        <SearchField value={search} onChange={setSearch} placeholder="Search branch, city or manager…" label="Search branches" />
-        <SelectFilter
-          label="Country"
-          allLabel="All countries"
-          value={countryFilter}
-          onChange={setCountryFilter}
-          options={["United Kingdom", "Bangladesh"].map((c) => ({ value: c, label: c, hint: offices.filter((o) => o.country === c).length }))}
-        />
-        <SelectFilter
-          label="Status"
-          allLabel="All statuses"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={["Active", "Expanding"].map((st) => ({ value: st, label: st, hint: offices.filter((o) => o.status === st).length }))}
-        />
-        {(search || countryFilter || statusFilter) && (
-          <ResetFilters
-            onClick={() => {
-              setSearch("");
-              setCountryFilter("");
-              setStatusFilter("");
-            }}
-          />
-        )}
+        <SearchField value={search} onChange={setSearch} placeholder="Branch, city, address…" label="Search branches" />
+        <SelectFilter label="Country" value={country} onChange={setCountry} allLabel="All countries" options={[...new Set(list.map((b) => b.country))]} />
+        <SelectFilter label="Status" value={status} onChange={setStatus} allLabel="Any status" options={["Open", "Temporarily closed", "Inactive"]} />
+        {(search || country || status) && <ResetFilters onClick={() => { setSearch(""); setCountry(""); setStatus(""); }} />}
       </FilterBar>
 
-      {/* Offices Table */}
-      <Card>
-        <CardHeader
-          title="BHE Regional Network Directory"
-          description={`Showing ${filtered.length} of ${offices.length} branches across global operations.`}
-        />
-
-        <SelectionBar selection={selection} noun={["office", "offices"]} onExport={exportSelected} className="mx-4 mb-3 sm:mx-6" />
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                <th className="w-10 py-2.5 pl-6 pr-0">
-                  <HeaderCheckbox selection={selection} />
-                </th>
-                <th className="py-3 pl-3 pr-4">Branch & Location</th>
-                <th className="py-3 px-4">Branch Lead / Manager</th>
-                <th className="py-3 px-4">Counselor Team</th>
-                <th className="py-3 px-4">Current Intake Pacing</th>
-                <th className="py-3 px-4">Conversion Rate</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 pl-4 pr-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
-                    No branches matched your search criteria.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((office) => {
-                  const pct = Math.min(100, Math.round((office.enrolledActual / office.enrolledTarget) * 100));
-                  return (
-                    <tr key={office.id} className={cn("transition-colors hover:bg-muted/30", selectedRowClass(selection, office.id))}>
-                      <td className="py-3 pl-6 pr-0 align-middle">
-                        <RowCheckbox selection={selection} id={office.id} label={`Select ${office.name}`} />
-                      </td>
-                      <td className="py-3.5 pl-3 pr-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary font-bold text-xs">
-                            {office.city.substring(0, 3).toUpperCase()}
-                          </div>
-                          <div>
-                            <span className="font-semibold text-foreground text-sm block">
-                              {office.name}
-                            </span>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-muted-foreground">
-                              <MapPin className="size-3" />
-                              <span>{office.city}, {office.country}</span>
-                            </div>
-                            <span className="text-[11px] text-muted-foreground/80 mt-0.5 line-clamp-1">
-                              {office.address}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 align-top">
-                        <span className="font-medium text-foreground block">{office.manager}</span>
-                        <div className="flex items-center gap-1 mt-0.5 text-muted-foreground">
-                          <Phone className="size-2.5" />
-                          <span className="text-[11px]">{office.phone}</span>
-                        </div>
-                        <span className="text-[11px] text-primary block mt-0.5">{office.email}</span>
-                      </td>
-
-                      <td className="py-3.5 px-4 align-top">
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                          <Users className="size-3.5 text-muted-foreground" />
-                          <span>{office.counselorCount} Advisors</span>
-                        </div>
-                        <span className="text-[11px] text-muted-foreground block mt-0.5">
-                          {office.leadsThisMonth} inquiries/mo
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 align-top min-w-[170px]">
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="font-medium text-foreground">
-                            {office.enrolledActual} / {office.enrolledTarget}
-                          </span>
-                          <span className="font-semibold text-primary">{pct}%</span>
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              pct >= 85
-                                ? "bg-success"
-                                : pct >= 65
-                                ? "bg-primary"
-                                : "bg-amber-500"
-                            )}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 align-top">
-                        <span className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
-                          {office.conversionRate}%
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 align-top">
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                            office.status === "Active"
-                              ? "border border-success/20 bg-success/10 text-success"
-                              : "border border-amber-500/20 bg-amber-700/10 text-amber-700 dark:bg-amber-300/10 dark:text-amber-300"
-                          )}
-                        >
-                          {office.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 pl-4 pr-6 align-top text-right">
-                        <button
-                          type="button"
-                          className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted"
-                        >
-                          Manage
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Add Modal */}
-      {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">Open New Regional Branch</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Register a physical office branch and assign staff capacities.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(false)}
-                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 flex flex-col gap-4">
-              <div>
-                <label className="text-xs font-semibold text-foreground">
-                  Branch Name <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Chittagong Agrabad Hub"
-                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    City <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Chittagong"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Country</label>
-                  <div className="relative mt-1">
-                    <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 pr-8 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                    >
-                      <option value="Bangladesh">Bangladesh</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="United Arab Emirates">United Arab Emirates</option>
-                      <option value="Malaysia">Malaysia</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      {filtered.length === 0 ? (
+        <EmptyState icon={Building2} title="No branches match" body="Try another country, status or search." />
+      ) : (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {filtered.map((b) => {
+            const s = stats.get(b.id)!;
+            const manager = getStaffMember(b.managerId);
+            return (
+              <article key={b.id} className={cn("card-shadow flex flex-col gap-4 rounded-3xl border border-border bg-surface p-5", b.status === "Inactive" && "opacity-60")}>
+                <div className="flex items-start gap-3">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary"><Building2 className="size-5" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={() => setViewingId(b.id)} className="truncate text-base font-semibold text-foreground hover:text-primary">{b.name}</button>
+                      <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{b.type}</span>
+                    </div>
+                    <p className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground"><MapPin className="mt-0.5 size-3 shrink-0" /> {b.address}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <OpenPill branch={b} now={now} />
+                    {now && <span className="text-[11px] tabular-nums text-muted-foreground">{localTime(b, new Date(now))} local</span>}
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-semibold text-foreground">Full Physical Address</label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. Level 4, Tower Plaza, Agrabad C/A"
-                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                />
-              </div>
+                {b.notes && <p className="rounded-xl bg-warning-soft px-3 py-2 text-xs text-foreground">{b.notes}</p>}
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">
-                    Branch Manager / Lead <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={manager}
-                    onChange={(e) => setManager(e.target.value)}
-                    placeholder="e.g. Farhan Chowdhury"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    ["Team", s.staff.length],
+                    ["Leads", s.leadsMonth],
+                    ["Apps", s.appsMonth],
+                    ["Enrolled", s.enrolled],
+                  ].map(([l, v]) => (
+                    <div key={l} className="rounded-xl bg-surface-muted px-3 py-2">
+                      <p className="text-base font-bold tabular-nums text-foreground">{v}</p>
+                      <p className="text-[11px] text-muted-foreground">{l}{l === "Leads" || l === "Apps" ? " · Sep" : ""}</p>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Official Phone</label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+880 31 778899"
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Counselors Allocated</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={counselors}
-                    onChange={(e) => setCounselors(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                  <a href={`tel:${b.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary"><Phone className="size-3.5" /> {b.phone}</a>
+                  <a href={`mailto:${b.email}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary"><Mail className="size-3.5" /> {b.email}</a>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Intake Target (Students)</label>
-                  <input
-                    type="number"
-                    min={10}
-                    value={target}
-                    onChange={(e) => setTarget(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  />
-                </div>
-              </div>
 
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setAddModalOpen(false)}
-                  className={buttonSecondary}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={buttonPrimary}
-                >
-                  Confirm & Open Branch
-                </button>
-              </div>
-            </form>
-          </div>
+                <div className="mt-auto flex items-center gap-2 border-t border-border pt-3">
+                  {manager ? (
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Avatar name={manager.name} size="sm" />
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-semibold text-foreground">{manager.name}</span>
+                        <span className="block text-[11px] text-muted-foreground">Branch manager</span>
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No manager assigned</span>
+                  )}
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <IconButton label={`View ${b.name}`} onClick={() => setViewingId(b.id)}><Eye className="size-4" /></IconButton>
+                    <IconButton label={`Edit ${b.name}`} onClick={() => setEditing(b)}><PencilLine className="size-4" /></IconButton>
+                    <Link href={`/office/front-office?branch=${encodeURIComponent(b.name)}`} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground transition-colors hover:bg-surface-hover">
+                      Front desk{s.visitorsToday ? ` · ${s.visitorsToday}` : ""}
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
+
+      {viewing && <BranchDetail branch={viewing} now={now} onClose={() => setViewingId(null)} onEdit={() => setEditing(viewing)} />}
+
+      {editing && (
+        <BranchDialog
+          key={editing === "new" ? "new" : editing.id}
+          branch={editing === "new" ? undefined : editing}
+          existing={list}
+          onClose={() => setEditing(null)}
+          onSave={(b) => {
+            const isNew = !list.some((x) => x.id === b.id);
+            setList((prev) => (isNew ? [...prev, b] : prev.map((x) => (x.id === b.id ? b : x))));
+            notify(isNew ? `${b.name} added` : `${b.name} saved`);
+            setEditing(null);
+          }}
+        />
+      )}
+      {toast}
     </div>
   );
 }
 
+function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} title={label.split(" ")[0]} className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary-soft hover:text-primary">
+      {children}
+    </button>
+  );
+}
+
+function BranchDetail({ branch: b, now, onClose, onEdit }: { branch: Branch; now: number | null; onClose: () => void; onEdit: () => void }) {
+  const s = branchStats(b.name);
+  const manager = getStaffMember(b.managerId);
+  const todayName = now ? new Date(now).toLocaleDateString("en-GB", { weekday: "short", timeZone: b.timezone }) : "";
+  const upcoming = [...b.holidays].filter((h) => h.date >= officeToday).sort((x, y) => x.date.localeCompare(y.date));
+  const conversion = s.apps ? Math.round((s.enrolled / s.apps) * 100) : 0;
+
+  return (
+    <SlideOver
+      open
+      onClose={onClose}
+      icon={Building2}
+      title={b.name}
+      subtitle={`${b.type} · ${b.city}, ${b.country} · since ${formatDay(b.openedOn)}`}
+      footer={
+        <Link href={`/people?branch=${encodeURIComponent(b.name)}`} className={cn(buttonSecondary, "w-full")}>
+          <Users className="size-4" /> View team in People
+        </Link>
+      }
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={onEdit} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"><PencilLine className="size-3.5" /> Edit</button>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:bg-surface-hover"><MapPin className="size-3.5" /> Map</a>
+          {b.whatsapp && <a href={`https://wa.me/${b.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:bg-surface-hover"><MessageCircle className="size-3.5" /> WhatsApp</a>}
+          <span className="ml-auto"><OpenPill branch={b} now={now} /></span>
+        </div>
+
+        {b.notes && <p className="rounded-xl bg-warning-soft px-3 py-2 text-xs text-foreground">{b.notes}</p>}
+
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            ["Applications", s.apps],
+            ["Enrolled", s.enrolled],
+            ["Conversion", `${conversion}%`],
+            ["Leads · Sep", s.leadsMonth],
+            ["Rooms", b.rooms],
+            ["Visitors today", s.visitorsToday],
+          ].map(([l, v]) => (
+            <div key={l} className="rounded-xl bg-surface-muted px-3 py-2.5">
+              <p className="text-lg font-bold tabular-nums text-foreground">{v}</p>
+              <p className="text-[11px] text-muted-foreground">{l}</p>
+            </div>
+          ))}
+        </div>
+
+        <dl className="grid grid-cols-[100px_1fr] gap-x-3 gap-y-2.5 text-xs">
+          <dt className="text-muted-foreground">Address</dt><dd className="text-foreground">{b.address}</dd>
+          <dt className="text-muted-foreground">Phone</dt><dd className="text-foreground">{b.phone}</dd>
+          <dt className="text-muted-foreground">WhatsApp</dt><dd className="text-foreground">{b.whatsapp || "—"}</dd>
+          <dt className="text-muted-foreground">Email</dt><dd className="text-foreground">{b.email}</dd>
+          <dt className="text-muted-foreground">Manager</dt><dd className="text-foreground">{manager ? `${manager.name} · ${manager.phone}` : "Not assigned"}</dd>
+        </dl>
+
+        <div>
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-foreground"><Clock3 className="size-3.5" /> Opening hours <span className="font-normal text-muted-foreground">· {b.timezone === "Asia/Dhaka" ? "Bangladesh time" : "UK time"}</span></p>
+          <ul className="divide-y divide-border rounded-2xl border border-border">
+            {b.hours.map((h) => (
+              <li key={h.day} className={cn("flex items-center justify-between px-3.5 py-2 text-xs", h.day === todayName && "bg-primary-soft/60")}>
+                <span className={cn("font-medium", h.day === todayName ? "text-primary" : "text-foreground")}>{h.day}{h.day === todayName && " · today"}</span>
+                <span className={h.closed ? "text-muted-foreground" : "tabular-nums text-foreground"}>{h.closed ? "Closed" : `${h.open} – ${h.close}`}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-foreground"><CalendarOff className="size-3.5" /> Upcoming closures</p>
+          {upcoming.length ? (
+            <ul className="flex flex-col gap-1.5">
+              {upcoming.map((h) => (
+                <li key={h.date + h.label} className="flex items-center justify-between rounded-xl bg-surface-muted px-3 py-2 text-xs">
+                  <span className="text-foreground">{h.label}</span>
+                  <span className="text-muted-foreground">{formatDay(h.date)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted-foreground">No closures planned.</p>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold text-foreground">Services</p>
+          <div className="flex flex-wrap gap-1.5">
+            {b.services.map((x) => <span key={x} className="rounded-full bg-surface-muted px-2.5 py-1 text-[11px] text-foreground">{x}</span>)}
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold text-foreground">Team · {s.staff.length}</p>
+          <ul className="divide-y divide-border rounded-2xl border border-border">
+            {s.staff.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 px-3.5 py-2">
+                <Avatar name={p.name} size="sm" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs font-semibold text-foreground">{p.name}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">{p.jobTitle}</span>
+                </span>
+                {p.status !== "Active" && <span className="text-[11px] text-muted-foreground">{p.status}</span>}
+              </li>
+            ))}
+            {s.staff.length === 0 && <li className="px-3.5 py-4 text-center text-xs text-muted-foreground">No one is assigned to this branch yet.</li>}
+          </ul>
+        </div>
+      </div>
+    </SlideOver>
+  );
+}

@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Building2,
   Check,
-  ChevronDown,
   MessageSquare,
   Save,
   Shield,
@@ -187,7 +186,6 @@ export default function SettingsPage() {
                       <option value="EUR (€)">EUR (€) - Euro</option>
                       <option value="BDT (৳)">BDT (৳) - Bangladeshi Taka</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
 
@@ -205,7 +203,6 @@ export default function SettingsPage() {
                       <option value="Australia">Australia</option>
                       <option value="Ireland">Ireland</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
 
@@ -276,7 +273,6 @@ export default function SettingsPage() {
                       <option value="Language & Country Matching">Language & Destination Matching</option>
                       <option value="Equal Workload Capacity">Equal Workload Capacity</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
 

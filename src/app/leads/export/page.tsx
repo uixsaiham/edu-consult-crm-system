@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Download, RotateCcw, Search, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Download, RotateCcw, Search, X } from "lucide-react";
 import { HeaderCheckbox, RowCheckbox, selectedRowClass } from "@/components/ui/row-selection";
 import { useRowSelection } from "@/lib/use-row-selection";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import {
 import { operationsSnapshotDate } from "@/lib/mock/applications";
 import { branches, counsellors, getLeads, leadStatuses, leadStatusStyles, type LeadRow } from "@/lib/mock/leads";
 import { useClickOutside } from "@/lib/use-click-outside";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
 import { buttonPrimary } from "@/components/ui/button-styles";
 
@@ -357,7 +358,7 @@ function ExportMenu({ matching, selectedRows }: { matching: LeadRow[]; selectedR
       >
         <Download className="size-4" />
         Export
-        <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} />
+        <DropdownChevron open={open} />
       </button>
 
       {open && (

@@ -5,7 +5,6 @@ import { useRowSelection } from "@/lib/use-row-selection";
 import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { useMemo, useState } from "react";
 import {
-  ChevronDown,
   Link2,
   MessageSquare,
   Plus,
@@ -345,7 +344,6 @@ export default function WhatsAppAccountsPage() {
                       <option value="Bangladesh">Bangladesh (+880)</option>
                       <option value="UK">United Kingdom (+44)</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
                 <div>

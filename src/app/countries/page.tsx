@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import {
   Building2,
   CheckCircle2,
-  ChevronDown,
   Eye,
   Globe2,
   LayoutGrid,
@@ -579,7 +578,6 @@ export default function CountriesPage() {
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   </div>
                 </div>
               </div>

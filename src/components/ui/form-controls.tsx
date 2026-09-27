@@ -7,7 +7,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
-import { Check, ChevronDown, UploadCloud, X } from "lucide-react";
+import { Check, UploadCloud, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const fieldClass =
@@ -54,18 +54,16 @@ export function Select({
   children,
   ...rest
 }: SelectHTMLAttributes<HTMLSelectElement> & { placeholder?: string }) {
+  // The arrow and its spacing come from the global `select` rule in globals.css.
   return (
-    <div className="relative">
-      <select className={cn(fieldClass, "cursor-pointer appearance-none pr-9", className)} {...rest}>
-        {placeholder && (
-          <option value="" disabled hidden>
-            {placeholder}
-          </option>
-        )}
-        {children}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-    </div>
+    <select className={cn(fieldClass, className)} {...rest}>
+      {placeholder && (
+        <option value="" disabled hidden>
+          {placeholder}
+        </option>
+      )}
+      {children}
+    </select>
   );
 }
 

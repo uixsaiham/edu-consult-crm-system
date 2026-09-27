@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { BookOpen, ChevronDown, CircleAlert, Clock3, GraduationCap, Landmark, MapPin, Pencil, Plus, Star, Trash2, CalendarDays } from "lucide-react";
+import { BookOpen, CircleAlert, Clock3, GraduationCap, Landmark, MapPin, Pencil, Plus, Star, Trash2, CalendarDays } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { buttonPrimary } from "@/components/ui/button-styles";
 import {
@@ -12,16 +12,9 @@ import {
   type ApplicationRow,
   type CourseOption,
 } from "@/lib/mock/applications";
-import {
-  catalog,
-  catalogCountries,
-  catalogIntakes,
-  courseLevels,
-  deliveryModes,
-  findUniversity,
-  type CourseLevel,
-  type DeliveryMode,
-} from "@/lib/mock/course-catalog";
+import { catalogIntakes, courseLevels, deliveryModes, type CourseLevel, type DeliveryMode } from "@/lib/mock/course-catalog";
+import { liveCatalog } from "@/lib/mock/courses";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
 import { AnchoredMenu, MenuItem, MenuLabel } from "./anchored-menu";
 
@@ -58,7 +51,7 @@ const emptyDraft = (app: ApplicationRow): Draft => ({
 });
 
 const selectClass =
-  "h-10 w-full cursor-pointer appearance-none rounded-xl border border-border bg-surface px-3 pr-8 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground";
+  "h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground";
 
 export function CourseManager({
   app,
@@ -81,6 +74,10 @@ export function CourseManager({
   const [editingId, setEditingId] = useState<string | undefined>();
   const [tried, setTried] = useState(false);
 
+  // Published courses from the Courses module, so newly added courses can be picked here.
+  const [catalog] = useState(liveCatalog);
+  const catalogCountries = [...new Set(catalog.map((u) => u.country))].sort();
+  const findUniversity = (name: string) => catalog.find((u) => u.name === name);
   const uni = findUniversity(draft.university);
   const universities = catalog.filter((u) => u.country === draft.country);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => ({ ...d, [k]: v }));
@@ -255,7 +252,7 @@ export function CourseManager({
                       <AnchoredMenu
                         label={`Stage for ${c.course}`}
                         triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-2 pr-1.5 text-[11px] font-semibold", st.bg, st.text)}
-                        trigger={<><span className={cn("size-1.5 rounded-full", st.dot)} />{c.stage}<ChevronDown className="size-3 opacity-60" /></>}
+                        trigger={<><span className={cn("size-1.5 rounded-full", st.dot)} />{c.stage}<DropdownChevron /></>}
                       >
                         {(close) => (
                           <>
@@ -272,8 +269,8 @@ export function CourseManager({
                       <AnchoredMenu
                         label={`Funding for ${c.course}`}
                         width={180}
-                        triggerClassName={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-md py-1 pl-2 pr-1.5 text-[11px] font-semibold", fundingStyles[c.funding])}
-                        trigger={<>{c.funding}<ChevronDown className="size-3 opacity-60" /></>}
+                        triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-md py-1 pl-2 pr-1.5 text-[11px] font-semibold", fundingStyles[c.funding])}
+                        trigger={<>{c.funding}<DropdownChevron /></>}
                       >
                         {(close) => (
                           <>
@@ -345,15 +342,12 @@ function SelectBox({
   disabled?: boolean;
 }) {
   return (
-    <div className="relative">
-      <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} className={selectClass}>
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((o) => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-    </div>
+    <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} className={selectClass}>
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map((o) => (
+        <option key={o}>{o}</option>
+      ))}
+    </select>
   );
 }
 

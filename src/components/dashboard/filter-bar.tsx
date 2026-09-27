@@ -5,7 +5,6 @@ import {
   Activity,
   Building2,
   Calendar,
-  ChevronDown,
   FileText,
   Globe2,
   Landmark,
@@ -15,6 +14,7 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
 
 interface FilterDef {
@@ -59,7 +59,7 @@ export function FilterBar() {
             aria-pressed={isActive}
             onClick={() => toggle(filter.id)}
             className={cn(
-              "flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              "flex min-h-10 items-center gap-1.5 rounded-full border py-1.5 pl-3 pr-2.5 text-xs font-medium transition-colors",
               isActive
                 ? "border-primary bg-primary-soft text-primary"
                 : "border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground"
@@ -67,7 +67,7 @@ export function FilterBar() {
           >
             <Icon className="size-3.5" />
             {filter.label}
-            <ChevronDown className="size-3.5 opacity-70" />
+            <DropdownChevron />
           </button>
         );
       })}

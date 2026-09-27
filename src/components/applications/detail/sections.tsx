@@ -9,7 +9,6 @@ import {
   CalendarPlus,
   Check,
   CheckCircle2,
-  ChevronDown,
   CircleDot,
   Eye,
   FileCheck2,
@@ -53,6 +52,7 @@ import { AnchoredMenu, MenuItem, MenuLabel } from "../list/anchored-menu";
 import { coursesOf, MAIN } from "../list/course-manager";
 import { formatCreated, whatsappLink } from "../list/format";
 import { Empty, fmtDate, Group, Info, InfoGrid, Panel, smallButton, smallPrimary, Tag } from "./ui";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 
 export type SectionKey =
   | "personal"
@@ -87,12 +87,12 @@ export function StagePicker({ value, onChange, size = "md" }: { value: Applicati
     <AnchoredMenu
       label="Change application status"
       width={200}
-      triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-semibold", size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs", st.bg, st.text)}
+      triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-semibold", size === "sm" ? "py-0.5 pl-2 pr-1.5 text-[11px]" : "py-1 pl-2.5 pr-2 text-xs", st.bg, st.text)}
       trigger={
         <>
           <span className={cn("size-1.5 rounded-full", st.dot)} />
           {value}
-          <ChevronDown className="size-3 opacity-70" />
+          <DropdownChevron />
         </>
       }
     >
@@ -118,11 +118,11 @@ export function FundingPicker({ value, onChange, size = "md" }: { value: Funding
     <AnchoredMenu
       label="Change fees and funding"
       width={190}
-      triggerClassName={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full font-semibold", size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs", fundingStyles[value])}
+      triggerClassName={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-semibold", size === "sm" ? "py-0.5 pl-2 pr-1.5 text-[11px]" : "py-1 pl-2.5 pr-2 text-xs", fundingStyles[value])}
       trigger={
         <>
           {value === "N/A" ? "Funding: N/A" : value}
-          <ChevronDown className="size-3 opacity-70" />
+          <DropdownChevron />
         </>
       }
     >

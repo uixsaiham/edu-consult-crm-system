@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, RotateCcw, Search, X } from "lucide-react";
+import { Check, RotateCcw, Search, X } from "lucide-react";
 import { useClickOutside } from "@/lib/use-click-outside";
+import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
 
 /**
@@ -49,7 +50,7 @@ export function FilterDropdown({
         >
           <span className="max-w-40 truncate whitespace-nowrap">{active ? (activeText ?? `${label}: ${valueLabel}`) : label}</span>
           {!(active && onClear) && (
-            <ChevronDown className={cn("size-3.5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+            <DropdownChevron open={open} />
           )}
         </button>
         {active && onClear && (
