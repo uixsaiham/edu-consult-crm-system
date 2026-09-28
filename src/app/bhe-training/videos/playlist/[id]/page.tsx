@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Clock3, ListVideo, PencilLine, Plus, Search, SearchX, Trash2, Volume2 } from "lucide-react";
+import { Award, Check, ChevronLeft, ChevronRight, Clock3, ListVideo, PencilLine, Plus, Search, SearchX, Trash2, Volume2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { buttonDanger, buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
@@ -12,8 +12,9 @@ import { useUser } from "@/components/layout/user-context";
 import { formatDay } from "@/components/people/people-ui";
 import { VideoDialog, VideoPlayer, VideoQuiz, videoStatusStyle } from "@/components/training/video";
 import { PlaylistDialog } from "@/components/training/playlist";
+import { ModuleCertificate } from "@/components/training/certificate";
 import { getStaff } from "@/lib/mock/staff";
-import { getPlaylists, getVideos, nextVideoId, parseVideo, savePlaylists, saveVideos, trainingToday, videoLength, videoProgress, videoStatus, type Playlist, type VideoSession } from "@/lib/mock/training";
+import { getPlaylists, getVideos, nextVideoId, parseVideo, playlistCompletion, savePlaylists, saveVideos, trainingToday, videoLength, videoProgress, videoStatus, type Playlist, type VideoSession } from "@/lib/mock/training";
 import { cn } from "@/lib/utils";
 
 export default function PlaylistPage() {
@@ -30,6 +31,7 @@ export default function PlaylistPage() {
   const [editing, setEditing] = useState<VideoSession | "new" | null>(null);
   const [editingPl, setEditingPl] = useState(false);
   const [deleting, setDeleting] = useState<VideoSession | null>(null);
+  const [cert, setCert] = useState<"view" | "celebrate" | null>(null);
   const [toast, notify] = useToast();
 
   useEffect(() => saveVideos(videos), [videos]);
@@ -48,7 +50,10 @@ export default function PlaylistPage() {
   const index = Math.max(0, list.findIndex((v) => v.id === playingId));
   const playing = list[index];
   const status = playing ? videoStatus(playing, myId) : undefined;
-  const done = list.filter((v) => videoStatus(v, myId) === "Passed").length;
+  const completion = playlistCompletion(list, myId);
+  const done = completion.done;
+  /** Passing `v` is the last step when every other video in the module is already passed. */
+  const finishesModule = (v: VideoSession) => !!myId && list.every((x) => x.id === v.id || videoStatus(x, myId) === "Passed");
   const q = search.trim().toLowerCase();
   const shown = list.filter((v) => !q || `${v.title} ${v.description}`.toLowerCase().includes(q));
   const presenters = [...new Set([user.name, ...videos.map((v) => v.presenter)])];
@@ -60,6 +65,7 @@ export default function PlaylistPage() {
     if (!myId) return;
     patchResult(v, (r) => ({ ...r, watchedAt: r.watchedAt ?? trainingToday, passedAt: r.passedAt ?? (v.quiz.length ? undefined : trainingToday) }));
     notify(v.quiz.length ? "Watched — now answer the questions below" : "Marked as complete");
+    if (!v.quiz.length && !completion.earned && finishesModule(v)) setCert("celebrate");
   };
   const go = (d: -1 | 1) => setPlayingId(list[index + d]?.id);
 
@@ -117,6 +123,7 @@ export default function PlaylistPage() {
                   const pass = score >= playing.passMark;
                   patchResult(playing, (r) => ({ ...r, attempts: [...r.attempts, { date: trainingToday, score }], passedAt: pass ? r.passedAt ?? trainingToday : r.passedAt }));
                   notify(pass ? `Passed with ${score}% — session complete` : `${score}% — you need ${playing.passMark}%. Rewatch and try again.`, pass ? "success" : "error");
+                  if (pass && !completion.earned && finishesModule(playing)) setCert("celebrate");
                 }}
               />
             ) : null}
@@ -136,6 +143,21 @@ export default function PlaylistPage() {
                 <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">{done}/{list.length} completed</span>
               </div>
             </div>
+            {completion.earned ? (
+              <button type="button" onClick={() => setCert("view")} className="group/cert flex items-center gap-3 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100 p-3 text-left ring-1 ring-amber-300/60 transition-shadow hover:shadow-md dark:from-amber-500/10 dark:to-amber-500/5 dark:ring-amber-400/30">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-md shadow-amber-500/30"><Award className="size-5" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-foreground">BHE UNI certificate earned</span>
+                  <span className="block text-[11px] text-muted-foreground">Completed {completion.completedAt ? formatDay(completion.completedAt) : ""}{completion.score !== undefined ? ` · avg. score ${completion.score}%` : ""}</span>
+                </span>
+                <span className="text-xs font-semibold text-amber-700 group-hover/cert:underline dark:text-amber-400">View</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border p-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-muted text-muted-foreground"><Award className="size-5" /></span>
+                <span className="min-w-0 text-[11px] leading-snug text-muted-foreground"><span className="block text-xs font-semibold text-foreground">Earn your BHE UNI certificate</span>Pass the {list.length - done} remaining session{list.length - done === 1 ? "" : "s"} in this module to unlock it.</span>
+              </div>
+            )}
             <label className="flex h-10 items-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm focus-within:border-primary">
               <Search className="size-4 text-muted-foreground" />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here" className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground" aria-label="Search this playlist" />
@@ -221,6 +243,7 @@ export default function PlaylistPage() {
       >
         <p className="text-sm text-muted-foreground">Deleting everywhere removes it from every playlist and training period, and its quiz results are lost.</p>
       </Modal>
+      {cert && completion.earned && <ModuleCertificate playlist={playlist} list={list} learnerId={myId} name={user.name} celebrate={cert === "celebrate"} onClose={() => setCert(null)} />}
       {toast}
     </div>
   );

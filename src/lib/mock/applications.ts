@@ -584,15 +584,36 @@ function generatedRows(): ApplicationRow[] {
 }
 
 let cache: ApplicationRow[] | null = null;
+/** Closed files from past intakes that start the session already archived. */
+let archivedSeed: ApplicationRow[] = [];
+
+function load(): ApplicationRow[] {
+  if (!cache) {
+    const all = [...handcrafted(), ...generatedRows()];
+    const oldest = [...all].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    const closed = oldest.filter((a) => a.createdAt < "2026-02-01" && (a.stage === "Rejected" || a.stage === "Withdrawn"));
+    const enrolled = oldest.filter((a) => a.createdAt < "2025-11-01" && a.stage === "Enrolled");
+    archivedSeed = [...closed.slice(0, 22), ...enrolled.slice(0, 8)];
+    const ids = new Set(archivedSeed.map((a) => a.id));
+    cache = all.filter((a) => !ids.has(a.id));
+  }
+  return cache;
+}
+
+/** Hands the seeded archive over once; the archive store owns those rows from then on. */
+export function takeArchivedApplicationSeed(): ApplicationRow[] {
+  load();
+  const rows = archivedSeed;
+  archivedSeed = [];
+  return rows;
+}
 
 export function getApplications(): ApplicationRow[] {
-  cache ??= [...handcrafted(), ...generatedRows()];
-  return [...cache];
+  return [...load()];
 }
 
 export function getApplication(id: string): ApplicationRow | undefined {
-  cache ??= [...handcrafted(), ...generatedRows()];
-  return cache.find((a) => a.id === id);
+  return load().find((a) => a.id === id);
 }
 
 /** Keeps in-session edits so the list and the details page stay in step (no backend yet). */
@@ -601,7 +622,7 @@ export function saveApplications(rows: ApplicationRow[]) {
 }
 
 export function saveApplication(row: ApplicationRow) {
-  cache = (cache ?? getApplications()).map((a) => (a.id === row.id ? row : a));
+  cache = load().map((a) => (a.id === row.id ? row : a));
 }
 
 function handcrafted(): ApplicationRow[] {

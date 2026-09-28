@@ -82,6 +82,10 @@ export const navSections: NavSection[] = [
         children: [
           { label: "WhatsApp Workspace", href: "/whatsapp-workspace" },
           { label: "WhatsApp Accounts", href: "/whatsapp-accounts" },
+          { label: "SMS Messages", href: "/communications/sms", badge: "New" },
+          { label: "SMS Campaigns", href: "/communications/sms/campaigns" },
+          { label: "SMS Consent", href: "/communications/sms/consent" },
+          { label: "SMS Setup", href: "/communications/sms/setup" },
           { label: "Announcements", href: "/communications/announcements" },
           { label: "News Feed", href: "/communications/news-feed" },
         ],
@@ -206,9 +210,9 @@ export const navSections: NavSection[] = [
         href: "/archived",
         icon: Archive,
         children: [
-          { label: "Archived Leads", href: "/archived?type=leads" },
-          { label: "Archived Applications", href: "/archived?type=applications" },
-          { label: "Archived Agent Applications", href: "/archived?type=agent-applications" },
+          { label: "Archived Leads", href: "/archived/leads" },
+          { label: "Archived Applications", href: "/archived/applications" },
+          { label: "Archived Agent Applications", href: "/archived/agent-applications" },
         ],
       },
       {
@@ -216,10 +220,10 @@ export const navSections: NavSection[] = [
         href: "/settings",
         icon: Settings,
         children: [
-          { label: "Menu Settings", href: "/settings?tab=menu" },
-          { label: "Menu Permission Settings", href: "/settings?tab=menu-permissions" },
-          { label: "Company Settings", href: "/settings?tab=company" },
-          { label: "Audit Logs", href: "/settings?tab=audit-logs" },
+          { label: "Menu Settings", href: "/settings/menu" },
+          { label: "Menu Permission Settings", href: "/settings/menu-permissions" },
+          { label: "Company Settings", href: "/settings/company" },
+          { label: "Audit Logs", href: "/settings/audit-logs" },
         ],
       },
     ],

@@ -146,7 +146,7 @@ function build(s: Seed): Agent {
   const approved = s.status !== "Pending" && s.status !== "Rejected";
   const activity: AgentActivity[] = [{ at: `${s.appliedAt}T09:00:00Z`, text: `Application received via ${s.source.toLowerCase()}`, by: "System" }];
   if (s.approvedAt) activity.unshift({ at: `${s.approvedAt}T10:30:00Z`, text: `Approved as ${s.tier} partner at ${s.commissionShare}% share`, by: s.manager });
-  if (s.status === "Rejected") activity.unshift({ at: "2026-08-28T11:00:00Z", text: `Rejected — ${s.rejectionReason}`, by: s.manager });
+  if (s.status === "Rejected") activity.unshift({ at: `${new Date(Date.parse(s.appliedAt) + 8 * 86400000).toISOString().slice(0, 10)}T11:00:00Z`, text: `Rejected — ${s.rejectionReason}`, by: s.manager });
   if (s.status === "Suspended") activity.unshift({ at: "2026-09-02T14:10:00Z", text: "Suspended pending compliance review", by: "Sadman Rahman" });
   return {
     type: "Company",
@@ -163,6 +163,18 @@ function build(s: Seed): Agent {
     ...s,
   };
 }
+
+/** Agent applications closed in earlier review cycles — they start the session in the archive. */
+const archivedApplicationSeeds: Seed[] = [
+  { id: "AGT-901", name: "Global Dream Visa Services", contactName: "Mizanur Rahman", contactRole: "Owner", email: "info@globaldreamvisa.com", phone: "+880 1911-220045", city: "Dhaka", country: "Bangladesh", markets: ["Bangladesh"], destinations: ["United Kingdom", "Canada"], tier: "Bronze", commissionShare: 45, status: "Rejected", source: "Website form", manager: "Sadman Rahman", expectedStudents: 400, appliedAt: "2025-11-04", docs: docs({ licence: "Rejected", id: "Uploaded" }), rejectionReason: "Advertises 'guaranteed visa' packages; trade licence registered to a travel agency." },
+  { id: "AGT-902", name: "EduLink Punjab", contactName: "Harpreet Singh", contactRole: "Director", email: "harpreet@edulinkpunjab.in", phone: "+91 98140 55321", city: "Amritsar", country: "India", markets: ["India"], destinations: ["United Kingdom", "Canada", "Australia"], tier: "Silver", commissionShare: 55, status: "Pending", source: "Education fair", manager: "Nusrat Choudhury", expectedStudents: 80, appliedAt: "2025-10-12", docs: docs({ licence: "Verified", id: "Verified" }), notes: "Stopped replying after the October fair — four document reminders sent." },
+  { id: "AGT-903", name: "Kandy Education Centre", contactName: "Nimal Perera", contactRole: "Principal", email: "nimal@kandyedu.lk", phone: "+94 81 222 7788", city: "Kandy", country: "Sri Lanka", markets: ["Sri Lanka"], destinations: ["United Kingdom"], tier: "Bronze", commissionShare: 45, status: "Rejected", source: "Partner referral", manager: "Alif Tasnim", expectedStudents: 20, appliedAt: "2025-08-18", docs: docs({ licence: "Verified", id: "Verified", address: "Verified", bank: "Rejected" }), rejectionReason: "Bank account held in a personal name that doesn't match the registered company." },
+  { id: "AGT-904", name: "Abuja Future Scholars", contactName: "Chinedu Eze", contactRole: "CEO", email: "chinedu@abujafuture.ng", phone: "+234 809 441 2200", city: "Abuja", country: "Nigeria", markets: ["Nigeria"], destinations: ["United Kingdom"], tier: "Silver", commissionShare: 55, status: "Pending", source: "Direct outreach", manager: "Bickey Shah", expectedStudents: 60, appliedAt: "2026-02-03", docs: docs({ licence: "Verified", id: "Verified", address: "Verified", bank: "Verified" }), notes: "Withdrew in March — signed an exclusive deal with another UK recruiter." },
+  { id: "AGT-905", name: "Karachi Study Abroad", contactName: "Bilal Ahmed", contactRole: "Managing Partner", email: "bilal@karachistudyabroad.pk", phone: "+92 21 3456 7788", city: "Karachi", country: "Pakistan", markets: ["Pakistan"], destinations: ["United Kingdom"], tier: "Silver", commissionShare: 55, status: "Rejected", source: "Website form", manager: "Nusrat Choudhury", expectedStudents: 90, appliedAt: "2026-01-15", docs: docs({ licence: "Uploaded", id: "Rejected", address: "Uploaded" }), rejectionReason: "Director's passport copy was altered; flagged to compliance." },
+  { id: "AGT-906", name: "Sylhet Student Care", contactName: "Jubayer Hossain", contactRole: "Director", email: "jubayer@sylhetstudentcare.com", phone: "+880 1720-778899", city: "Sylhet", country: "Bangladesh", markets: ["Bangladesh"], destinations: ["United Kingdom"], tier: "Bronze", commissionShare: 45, status: "Pending", source: "Partner referral", manager: "Harunor Rashid", expectedStudents: 25, appliedAt: "2024-06-10", docs: docs({ licence: "Verified" }), notes: "Duplicate of Study Bridge Sylhet's application — same directors." },
+  { id: "AGT-907", name: "Nairobi Pathways", contactName: "Grace Wanjiru", contactRole: "Founder", email: "grace@nairobipathways.co.ke", phone: "+254 722 440 118", city: "Nairobi", country: "Kenya", markets: ["Kenya", "Uganda"], destinations: ["United Kingdom", "Canada"], tier: "Silver", commissionShare: 55, status: "Pending", source: "Education fair", manager: "Bickey Shah", expectedStudents: 45, appliedAt: "2025-05-20", docs: docs({ licence: "Verified", id: "Verified", address: "Verified", bank: "Verified", agreement: "Missing" }), notes: "All KYC verified but never returned the signed agreement." },
+];
+export const getArchivedAgentApplicationSeed = () => archivedApplicationSeeds.map(build);
 
 const ambassadorSeeds: Ambassador[] = [
   { id: "AMB-01", name: "Rahim Uddin", email: "rahim.uddin@student.gre.ac.uk", phone: "+44 7700 900411", kind: "Student", affiliation: "University of Greenwich · BSc Business", city: "London", code: "RAHIM25", reward: 150, manager: "Sadman Rahman", status: "Active", joined: "2025-10-02", paid: 450, payouts: [{ at: "2026-06-30", amount: 300, by: "Sadman Rahman" }, { at: "2026-02-28", amount: 150, by: "Sadman Rahman" }] },
@@ -189,7 +201,8 @@ export function getAgent(id: string) {
   return getAgents().find((a) => a.id === id);
 }
 export function nextAgentId() {
-  const max = Math.max(...getAgents().map((a) => Number(a.id.slice(4))));
+  // AGT-9xx numbers belong to archived applications from earlier review cycles.
+  const max = Math.max(...getAgents().map((a) => Number(a.id.slice(4))).filter((n) => n < 900));
   return `AGT-${String(max + 1).padStart(3, "0")}`;
 }
 

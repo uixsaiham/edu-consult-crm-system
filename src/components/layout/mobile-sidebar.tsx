@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";
-import { isNavItemActive, navSections } from "./nav-items";
-import { useUser } from "./user-context";
-import { cn, initialsFor } from "@/lib/utils";
-
-const allNavItems = navSections.flatMap((section) => section.items);
+import { isNavItemActive } from "./nav-items";
+import { useMenu } from "./use-menu";
+import { AccountMenu } from "./account-menu";
+import { cn } from "@/lib/utils";
 
 export function MobileSidebar({
   open,
@@ -21,7 +20,8 @@ export function MobileSidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentFullPath = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
-  const { user, openProfile } = useUser();
+  const sections = useMenu();
+  const allNavItems = sections.flatMap((section) => section.items);
 
   const activeParentLabel =
     allNavItems.find(
@@ -60,8 +60,8 @@ export function MobileSidebar({
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-2">
           <div className="flex flex-col gap-5">
-            {navSections.map((section) => (
-              <div key={section.label}>
+            {sections.map((section) => (
+              <div key={section.key}>
                 <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {section.label}
                 </p>
@@ -167,22 +167,7 @@ export function MobileSidebar({
           </div>
         </nav>
         <div className="border-t border-border p-3">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              openProfile();
-            }}
-            className="flex w-full items-center gap-2.5 rounded-2xl px-2.5 py-2 text-left transition-colors hover:bg-surface-hover"
-          >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-              {initialsFor(user.name)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
-              <span className="block truncate text-xs text-muted-foreground">{user.role}</span>
-            </span>
-          </button>
+          <AccountMenu placement="sidebar" onNavigate={onClose} />
         </div>
       </aside>
     </div>

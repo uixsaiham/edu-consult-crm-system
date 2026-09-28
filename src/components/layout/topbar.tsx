@@ -6,7 +6,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { MessagesDropdown } from "@/components/layout/messages-dropdown";
-import { ProfileMenu } from "@/components/layout/profile-menu";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { FollowUpMenu, MeetingMenu, NotesMenu } from "@/components/layout/quick-actions";
 import { useUser } from "@/components/layout/user-context";
 
@@ -59,7 +59,7 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
           <NotificationBell />
         </div>
 
-        <ProfileMenu />
+        <AccountMenu placement="topbar" />
       </div>
     </header>
   );

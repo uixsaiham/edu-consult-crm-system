@@ -4,12 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronsLeft, ChevronsRight, Settings } from "lucide-react";
-import { isNavItemActive, navSections } from "./nav-items";
-import { useUser } from "./user-context";
-import { cn, initialsFor } from "@/lib/utils";
-
-const allNavItems = navSections.flatMap((section) => section.items);
+import { ChevronDown, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { isNavItemActive } from "./nav-items";
+import { useMenu } from "./use-menu";
+import { AccountMenu } from "./account-menu";
+import { cn } from "@/lib/utils";
 
 export function Sidebar({
   collapsed,
@@ -21,7 +20,8 @@ export function Sidebar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentFullPath = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
-  const { user, openProfile } = useUser();
+  const sections = useMenu();
+  const allNavItems = sections.flatMap((section) => section.items);
 
   const activeParentLabel =
     allNavItems.find(
@@ -76,8 +76,8 @@ export function Sidebar({
 
       <nav className={cn("flex-1 overflow-y-auto", collapsed ? "no-scrollbar py-1" : "px-3 py-3")}>
         <div className={cn("flex flex-col", collapsed ? "gap-1" : "gap-6")}>
-          {navSections.map((section) => (
-            <div key={section.label}>
+          {sections.map((section) => (
+            <div key={section.key}>
               {!collapsed && (
                 <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                   {section.label}
@@ -208,28 +208,7 @@ export function Sidebar({
       </nav>
 
       <div className={cn("p-3", !collapsed && "border-t border-border")}>
-        <button
-          type="button"
-          onClick={openProfile}
-          title={collapsed ? "My Profile" : undefined}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-2xl text-left transition-colors hover:bg-surface-hover",
-            collapsed ? "justify-center py-2" : "px-2.5 py-2"
-          )}
-        >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            {initialsFor(user.name)}
-          </span>
-          {!collapsed && (
-            <>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
-                <span className="block truncate text-xs text-muted-foreground">{user.role}</span>
-              </span>
-              <Settings className="size-4 shrink-0 text-muted-foreground" />
-            </>
-          )}
-        </button>
+        <AccountMenu placement={collapsed ? "sidebar-collapsed" : "sidebar"} />
       </div>
     </aside>
   );

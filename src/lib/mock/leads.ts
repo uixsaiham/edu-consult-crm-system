@@ -81,10 +81,28 @@ export function addLead(lead: LeadRow) {
   addedLeads.unshift(lead);
 }
 
-export function getLeads(): LeadRow[] {
+/** Leads moved to the archive this session — hidden from every active list until restored. */
+const archivedIds = new Set<string>();
+export function hideArchivedLeads(ids: string[]) {
+  ids.forEach((id) => archivedIds.add(id));
+}
+/** Puts archived leads back into the active pipeline (seeded archive leads are re-added). */
+export function restoreArchivedLeads(rows: LeadRow[]) {
+  const known = new Set(allLeads().map((l) => l.id));
+  rows.forEach((row) => {
+    archivedIds.delete(row.id);
+    if (!known.has(row.id)) addLead(row);
+  });
+}
+
+function allLeads(): LeadRow[] {
   return [...addedLeads, ...rawLeads.map((lead, i) => ({
     ...lead,
     id: `LD-${(4820 - i).toString().padStart(4, "0")}`,
     initials: initialsFor(lead.name),
   }))];
+}
+
+export function getLeads(): LeadRow[] {
+  return allLeads().filter((l) => !archivedIds.has(l.id));
 }

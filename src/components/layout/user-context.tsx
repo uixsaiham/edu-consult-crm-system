@@ -1,38 +1,41 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { defaultUser, type CurrentUser } from "@/lib/mock/user";
+import type { CurrentUser } from "@/lib/mock/user";
+import { profileStore, securityStore, withProfileDefaults } from "@/lib/settings/account";
+import { logAudit } from "@/lib/settings/audit";
+import { useSettingsStore } from "@/lib/settings/store";
 
 interface UserContextValue {
   user: CurrentUser;
   updateUser: (patch: Partial<CurrentUser>) => void;
-  profileOpen: boolean;
-  openProfile: () => void;
-  closeProfile: () => void;
   signedIn: boolean;
-  signOut: () => void;
+  signOut: (opts?: { everywhere?: boolean }) => void;
   signIn: () => void;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CurrentUser>(defaultUser);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const user = withProfileDefaults(useSettingsStore(profileStore));
   const [signedIn, setSignedIn] = useState(true);
 
   const value: UserContextValue = {
     user,
-    updateUser: (patch) => setUser((u) => ({ ...u, ...patch })),
-    profileOpen,
-    openProfile: () => setProfileOpen(true),
-    closeProfile: () => setProfileOpen(false),
+    updateUser: (patch) => profileStore.set({ ...user, ...patch }),
     signedIn,
-    signOut: () => {
-      setProfileOpen(false);
+    signOut: (opts) => {
+      if (opts?.everywhere) {
+        const s = securityStore.get();
+        securityStore.set({ ...s, sessions: s.sessions.filter((x) => x.current) });
+      }
+      logAudit({ actor: user.name, role: user.role, module: "Security", action: "Signed out", entity: "CRM", summary: opts?.everywhere ? "Signed out on every device" : "Signed out", severity: opts?.everywhere ? "notice" : "info" });
       setSignedIn(false);
     },
-    signIn: () => setSignedIn(true),
+    signIn: () => {
+      logAudit({ actor: user.name, role: user.role, module: "Security", action: "Signed in", entity: "CRM", summary: "Signed in", severity: "info" });
+      setSignedIn(true);
+    },
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

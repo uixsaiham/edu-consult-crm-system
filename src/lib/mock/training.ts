@@ -808,6 +808,24 @@ export function nextPlaylistId(list = getPlaylists()) {
   return `PL-${String(list.reduce((m, p) => Math.max(m, Number(p.id.slice(3)) || 0), 0) + 1).padStart(3, "0")}`;
 }
 
+/** A playlist is a training module: passing every video in it earns the learner a BHE UNI certificate. */
+export function playlistCompletion(list: VideoSession[], learnerId: string) {
+  const done = list.filter((v) => videoStatus(v, learnerId) === "Passed").length;
+  const earned = !!learnerId && list.length > 0 && done === list.length;
+  const scores = list.flatMap((v) => (v.quiz.length && v.results[learnerId]?.attempts.length ? [Math.max(...v.results[learnerId].attempts.map((a) => a.score))] : []));
+  return {
+    done,
+    total: list.length,
+    percent: list.length ? Math.round((done / list.length) * 100) : 0,
+    earned,
+    /** The day the last video in the module was passed. */
+    completedAt: earned ? list.map((v) => v.results[learnerId]?.passedAt ?? "").sort().at(-1) : undefined,
+    score: scores.length ? Math.round(scores.reduce((n, s) => n + s, 0) / scores.length) : undefined,
+    minutes: Math.round(list.reduce((n, v) => n + (v.seconds ?? v.minutes * 60), 0) / 60),
+  };
+}
+export const certificateNo = (playlistId: string, learnerId: string) => `BHEU-${playlistId.replace("PL-", "")}-${learnerId.replace(/\W/g, "").toUpperCase()}`;
+
 /** A readable title from a link, for bulk imports without titles. */
 export function titleFromUrl(url: string) {
   try {

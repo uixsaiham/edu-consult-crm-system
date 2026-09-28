@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  Archive,
   ArrowDown,
   ArrowUp,
   BookOpen,
@@ -54,6 +55,8 @@ import {
   type FundingStatus,
 } from "@/lib/mock/applications";
 import { useRowSelection } from "@/lib/use-row-selection";
+import { ArchiveDialog } from "@/components/archive/archive-ui";
+import { applicationArchive } from "@/lib/mock/archive";
 import { downloadCsv, toCsvRow } from "@/lib/csv";
 import { DropdownChevron } from "@/components/ui/dropdown-chevron";
 import { cn } from "@/lib/utils";
@@ -122,6 +125,7 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
   const [hidden, setHidden] = useState<Set<ColumnKey>>(() => new Set(["studentId"]));
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null);
+  const [archiving, setArchiving] = useState<string[] | null>(null);
   const [dialog, setDialog] = useState<{ kind: "courses" | "docs" | "followUp" | "meeting" | "note"; id: string } | null>(null);
   const [toast, notify] = useToast();
   useEffect(() => saveApplications(apps), [apps]);
@@ -421,6 +425,10 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
               ))
             }
           </AnchoredMenu>
+          <BarButton onClick={() => setArchiving([...selection.selected])}>
+            <Archive className="size-3.5" />
+            Archive
+          </BarButton>
           <BarButton tone="danger" onClick={() => setConfirmDelete([...selection.selected])}>
             <Trash2 className="size-3.5" />
             Delete
@@ -727,6 +735,7 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
                                 Copy phone
                               </MenuItem>
                               <MenuDivider />
+                              <MenuItem icon={Archive} onClick={() => { setArchiving([a.id]); close(); }}>Archive application</MenuItem>
                               <MenuItem icon={Trash2} tone="danger" onClick={() => { setConfirmDelete([a.id]); close(); }}>Delete application</MenuItem>
                             </>
                           )}
@@ -867,6 +876,25 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
         />
       )}
 
+      {archiving && (
+        <ArchiveDialog
+          kind="applications"
+          names={apps.filter((a) => archiving.includes(a.id)).map((a) => a.applicant)}
+          onClose={() => setArchiving(null)}
+          onConfirm={(meta) => {
+            const ids = new Set(archiving);
+            const rows = apps.filter((a) => ids.has(a.id));
+            // Save the latest edits first so the archive keeps the file exactly as it is now.
+            saveApplications(apps);
+            applicationArchive.archive(rows, { ...meta, archivedBy: user.name });
+            setApps((prev) => prev.filter((a) => !ids.has(a.id)));
+            selection.retain(apps.filter((a) => !ids.has(a.id) && selection.isSelected(a.id)).map((a) => a.id));
+            if (viewingId && ids.has(viewingId)) setViewingId(null);
+            notify(rows.length === 1 ? `${rows[0].applicant} moved to Archived Applications` : `${rows.length} applications moved to Archived Applications`);
+            setArchiving(null);
+          }}
+        />
+      )}
       {confirmDelete && (
         <ConfirmDialog
           title={`Delete ${confirmDelete.length === 1 ? "this application" : `${confirmDelete.length} applications`}?`}

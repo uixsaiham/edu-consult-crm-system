@@ -16,7 +16,8 @@ import { ImportDialog, VideoDialog, VideoPlayer, VideoQuiz, VideoThumb, videoSta
 import { getStaff } from "@/lib/mock/staff";
 import { Tabs } from "@/components/office/office-ui";
 import { PlaylistDialog, PlaylistThumb } from "@/components/training/playlist";
-import { crmAreas, getPlaylists, getVideos, nextPlaylistId, nextVideoId, parseVideo, playlistCategories, savePlaylists, saveVideos, trainingToday, videoLength, videoStatus, type Playlist, type VideoSession } from "@/lib/mock/training";
+import { ModuleCertificate } from "@/components/training/certificate";
+import { crmAreas, getPlaylists, getVideos, nextPlaylistId, nextVideoId, parseVideo, playlistCategories, playlistCompletion, savePlaylists, saveVideos, trainingToday, videoStatus, type Playlist, type VideoSession } from "@/lib/mock/training";
 import { cn } from "@/lib/utils";
 
 type Sort = "" | "oldest" | "popular" | "title";
@@ -42,6 +43,7 @@ export default function VideoSessionsPage() {
   const [plCategory, setPlCategory] = useState("");
   const [editingPl, setEditingPl] = useState<Playlist | "new" | null>(null);
   const [deletingPl, setDeletingPl] = useState<Playlist | null>(null);
+  const [certFor, setCertFor] = useState<Playlist | null>(null);
   const [toast, notify] = useToast();
 
   useEffect(() => saveVideos(videos), [videos]);
@@ -128,13 +130,11 @@ export default function VideoSessionsPage() {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {shownPlaylists.filter((p) => p.category === c).map((p) => {
                         const list = plVideos(p);
-                        const done = list.filter((v) => videoStatus(v, myId) === "Passed").length;
-                        const pct = list.length ? Math.round((done / list.length) * 100) : 0;
-                        const secs = list.reduce((n, v) => n + (v.seconds ?? v.minutes * 60), 0);
+                        const c = playlistCompletion(list, myId);
                         return (
-                          <article key={p.id} className="card-shadow group flex flex-col gap-3 rounded-3xl border border-border bg-surface p-3">
+                          <article key={p.id} className="card-shadow group flex flex-col gap-3 rounded-3xl border border-border bg-surface p-3 transition-shadow hover:shadow-lg">
                             <Link href={`/bhe-training/videos/playlist/${p.id}`} aria-label={`Open ${p.title}`}>
-                              <PlaylistThumb videos={list} />
+                              <PlaylistThumb videos={list} done={c.done} earned={c.earned} />
                             </Link>
                             <div className="flex items-start gap-2 px-1">
                               <Link href={`/bhe-training/videos/playlist/${p.id}`} className="min-w-0 flex-1">
@@ -151,12 +151,13 @@ export default function VideoSessionsPage() {
                                 )}
                               </AnchoredMenu>
                             </div>
-                            <div className="mt-auto flex flex-col gap-1.5 border-t border-border px-1 pt-2.5">
-                              <div className="flex items-center justify-between text-[11px]">
-                                <span className="text-muted-foreground">{list.length} videos · {videoLength({ minutes: 0, seconds: secs })}</span>
-                                <span className={cn("font-semibold tabular-nums", pct === 100 ? "text-success" : "text-foreground")}>{done}/{list.length} completed</span>
-                              </div>
-                              <div className="h-1.5 overflow-hidden rounded-full bg-surface-muted"><div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : "bg-primary")} style={{ width: `${pct}%` }} /></div>
+                            <div className="mt-auto flex items-center justify-between gap-2 border-t border-border px-1 pt-2.5 text-[11px]">
+                              <span className="font-semibold tabular-nums text-foreground">{c.done}/{c.total} completed</span>
+                              {c.earned ? (
+                                <button type="button" onClick={() => setCertFor(p)} className="inline-flex items-center gap-1 font-semibold text-amber-600 hover:underline dark:text-amber-400"><Award className="size-3.5" /> View certificate</button>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-muted-foreground"><Award className="size-3.5" /> {c.total ? `${c.total - c.done} to go for your certificate` : "No videos yet"}</span>
+                              )}
                             </div>
                           </article>
                         );
@@ -334,6 +335,7 @@ export default function VideoSessionsPage() {
       >
         <p className="text-sm text-muted-foreground">{deletingPl?.videoIds.length} videos are in this playlist.</p>
       </Modal>
+      {certFor && <ModuleCertificate playlist={certFor} list={plVideos(certFor)} learnerId={myId} name={user.name} onClose={() => setCertFor(null)} />}
       {toast}
     </div>
   );

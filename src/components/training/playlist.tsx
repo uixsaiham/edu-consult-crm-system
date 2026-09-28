@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, CheckCircle2, ListVideo, Play, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Award, CheckCircle2, ListVideo, Play, Search, X } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Field, PillGroup, TextInput, Textarea } from "@/components/ui/form-controls";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
@@ -9,29 +9,52 @@ import { parseVideo, playlistCategories, videoLength, type Playlist, type Playli
 import { VideoThumb } from "./video";
 import { cn } from "@/lib/utils";
 
-/** YouTube-style playlist cover: the first video's thumbnail with a stack behind it and a video-count panel. */
-export function PlaylistThumb({ videos, className }: { videos: VideoSession[]; className?: string }) {
-  const [first, second] = videos;
-  const thumb = first ? parseVideo(first.url).thumb : undefined;
-  const secondThumb = second ? parseVideo(second.url).thumb : undefined;
+const glass = "rounded-full bg-black/35 text-white ring-1 ring-white/20 backdrop-blur-md";
+
+/** Playlist cover: the first video full-bleed, a filmstrip of what follows, and the learner's progress along the bottom edge. */
+export function PlaylistThumb({ videos, done = 0, earned, className }: { videos: VideoSession[]; done?: number; earned?: boolean; className?: string }) {
+  const thumbs = videos.map((v) => parseVideo(v.url).thumb);
+  const [cover, ...rest] = thumbs;
+  const strip = rest.slice(0, 3);
+  const pct = videos.length ? Math.round((done / videos.length) * 100) : 0;
+  const secs = videos.reduce((n, v) => n + (v.seconds ?? v.minutes * 60), 0);
   return (
-    <div className={cn("relative pt-2.5", className)}>
-      <div className="absolute inset-x-5 top-0 h-4 overflow-hidden rounded-t-xl bg-surface-muted opacity-60">
-        {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
-        {secondThumb && <img src={secondThumb} alt="" className="size-full object-cover" loading="lazy" />}
-      </div>
-      <div className="absolute inset-x-2.5 top-1.5 h-4 rounded-t-xl border-t border-white/40 bg-slate-400/70 dark:bg-slate-600/70" />
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-violet-500">
-        {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
-        {thumb && <img src={thumb} alt="" className="absolute inset-0 size-full object-cover" loading="lazy" />}
-        <span className="absolute inset-y-0 right-0 flex w-[34%] flex-col items-center justify-center gap-1 bg-black/70 text-white backdrop-blur-[2px]">
-          <span className="text-lg font-semibold tabular-nums">{videos.length}</span>
-          <ListVideo className="size-5" />
+    <div className={cn("relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-[#17305c] via-primary to-violet-500 ring-1 ring-black/5", className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
+      {cover && <img src={cover} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" loading="lazy" />}
+      <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
+
+      <span className="absolute inset-x-2.5 top-2.5 flex items-center justify-between gap-2">
+        <span className={cn(glass, "inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider")}><ListVideo className="size-3" /> {videos.length} {videos.length === 1 ? "lesson" : "lessons"}</span>
+        {earned ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-300 to-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-950 shadow-lg shadow-amber-500/30"><Award className="size-3" /> Certified</span>
+        ) : (
+          <span className={cn(glass, "px-2.5 py-1 text-[10px] font-semibold tabular-nums")}>{videoLength({ minutes: 0, seconds: secs })}</span>
+        )}
+      </span>
+
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="flex size-12 scale-90 items-center justify-center rounded-full bg-white/20 text-white opacity-0 ring-1 ring-white/40 backdrop-blur-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+          <Play className="ml-0.5 size-5 fill-current" />
         </span>
-        <span className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/0 text-sm font-semibold text-white opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
-          <Play className="size-4 fill-current" /> Play all
+      </span>
+
+      <span className="absolute inset-x-2.5 bottom-3.5 flex items-end justify-between gap-2">
+        <span className="flex items-center">
+          {strip.map((t, i) => (
+            <span key={i} className={cn("relative aspect-video w-11 overflow-hidden rounded-md bg-slate-700 shadow-md ring-2 ring-white/80", i > 0 && "-ml-3")} style={{ zIndex: 3 - i }}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
+              {t && <img src={t} alt="" className="size-full object-cover" loading="lazy" />}
+            </span>
+          ))}
+          {rest.length > strip.length && <span className="ml-1.5 text-[10px] font-semibold text-white/85">+{rest.length - strip.length}</span>}
         </span>
-      </div>
+        <span className="text-[11px] font-semibold tabular-nums text-white drop-shadow">{earned ? "Complete" : pct ? `${pct}% done` : "Start module"}</span>
+      </span>
+
+      <span className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
+        <span className={cn("block h-full transition-[width] duration-500", earned ? "bg-gradient-to-r from-amber-300 to-amber-500" : "bg-gradient-to-r from-sky-400 to-primary")} style={{ width: `${pct}%` }} />
+      </span>
     </div>
   );
 }

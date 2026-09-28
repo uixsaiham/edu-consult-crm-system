@@ -3,6 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  Archive,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -30,6 +31,10 @@ import { AddLeadPanel } from "@/components/leads/add-lead-panel";
 import { HeaderCheckbox, RowCheckbox, selectedRowClass } from "@/components/ui/row-selection";
 import { useRowSelection } from "@/lib/use-row-selection";
 import { AssignLeadPanel } from "@/components/leads/assign-lead-panel";
+import { ArchiveDialog } from "@/components/archive/archive-ui";
+import { useToast } from "@/components/ui/toast";
+import { useUser } from "@/components/layout/user-context";
+import { leadArchive } from "@/lib/mock/archive";
 import { LeadDetailsPanel } from "@/components/leads/lead-details-panel";
 import {
   branches,
@@ -101,6 +106,9 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   const [addOpen, setAddOpen] = useState(false);
   const [assigning, setAssigning] = useState<LeadRow[] | null>(null);
   const [viewing, setViewing] = useState<LeadRow | null>(null);
+  const [archiving, setArchiving] = useState<LeadRow[] | null>(null);
+  const { user } = useUser();
+  const [toast, notify] = useToast();
 
   const hasFilters = !!(
     search ||
@@ -181,6 +189,15 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   function handleDeleteSelected() {
     setLeads((prev) => prev.filter((l) => !selected.has(l.id)));
     selection.clear();
+  }
+
+  function handleArchive(rows: LeadRow[], meta: { reason: string; note: string }) {
+    leadArchive.archive(rows, { ...meta, archivedBy: user.name });
+    const ids = new Set(rows.map((l) => l.id));
+    setLeads((prev) => prev.filter((l) => !ids.has(l.id)));
+    selection.retain([...selected].filter((id) => !ids.has(id)));
+    setArchiving(null);
+    notify(rows.length === 1 ? `${rows[0].name} moved to Archived Leads` : `${rows.length} leads moved to Archived Leads`);
   }
 
   function handleAssign(ids: string[], branch: string, counsellor: string) {
@@ -437,6 +454,14 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
               </button>
               <button
                 type="button"
+                onClick={() => setArchiving(selectedLeads)}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 text-xs font-semibold text-foreground transition-all hover:bg-surface-hover"
+              >
+                <Archive className="size-3.5" />
+                Archive
+              </button>
+              <button
+                type="button"
                 onClick={handleDeleteSelected}
                 className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-danger/30 bg-surface px-3.5 text-xs font-semibold text-danger transition-all hover:bg-danger-soft"
               >
@@ -516,6 +541,15 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
                             className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary-soft hover:text-primary"
                           >
                             <UserCog className="size-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setArchiving([lead])}
+                            aria-label="Archive lead"
+                            title="Archive"
+                            className="flex size-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                          >
+                            <Archive className="size-3.5" />
                           </button>
                           <button
                             type="button"
@@ -649,6 +683,10 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
           setAssigning([lead]);
         }}
       />
+      {archiving && (
+        <ArchiveDialog kind="leads" names={archiving.map((l) => l.name)} onClose={() => setArchiving(null)} onConfirm={(meta) => handleArchive(archiving, meta)} />
+      )}
+      {toast}
     </div>
   );
 }

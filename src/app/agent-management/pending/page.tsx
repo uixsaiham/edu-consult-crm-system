@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Archive,
   Ban,
   Check,
   CircleAlert,
@@ -48,6 +49,8 @@ import {
   type DocKey,
 } from "@/lib/mock/agents";
 import { useRowSelection } from "@/lib/use-row-selection";
+import { ArchiveDialog } from "@/components/archive/archive-ui";
+import { agentApplicationArchive } from "@/lib/mock/archive";
 import { downloadCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +71,7 @@ export default function PendingAgentsPage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ kind: AgentDialog; id: string } | null>(null);
   const [lastChange] = useState(getAgentChange);
+  const [archiving, setArchiving] = useState<Agent[] | null>(null);
   const [toast, notify] = useToast();
 
   useEffect(() => saveAgents(all), [all]);
@@ -200,6 +204,7 @@ export default function PendingAgentsPage() {
         </div>
         <SelectionBar selection={selection} noun={["agent", "agents"]} onExport={() => exportRows(selected)} className="mx-5 mt-3">
           {tab === "Pending" && <BarButton onClick={() => { remind(selected); selection.clear(); }}><Send className="size-3.5" /> Remind about documents</BarButton>}
+          <BarButton onClick={() => setArchiving(selected)}><Archive className="size-3.5" /> Archive</BarButton>
         </SelectionBar>
 
         <div className="mt-3 overflow-x-auto">
@@ -277,6 +282,11 @@ export default function PendingAgentsPage() {
                             <RotateCcw className="size-3.5" /> Reopen
                           </button>
                         )}
+                        {tab === "Rejected" && (
+                          <button type="button" onClick={() => setArchiving([a])} aria-label={`Archive ${a.name}`} title="Archive" className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground">
+                            <Archive className="size-3.5" />
+                          </button>
+                        )}
                         <AgentRowMenu agent={a} onAction={(kind) => setDialog({ kind, id: a.id })} />
                       </div>
                     </td>
@@ -322,6 +332,22 @@ export default function PendingAgentsPage() {
             setReviewingId(null);
             setDialog(null);
             notify(`${dialogAgent.name} deleted`);
+          }}
+        />
+      )}
+      {archiving && (
+        <ArchiveDialog
+          kind="agent-applications"
+          names={archiving.map((a) => a.name)}
+          onClose={() => setArchiving(null)}
+          onConfirm={(meta) => {
+            const ids = new Set(archiving.map((a) => a.id));
+            agentApplicationArchive.archive(all.filter((a) => ids.has(a.id)), { ...meta, archivedBy: reviewer });
+            setAll((prev) => prev.filter((a) => !ids.has(a.id)));
+            selection.clear();
+            if (reviewingId && ids.has(reviewingId)) setReviewingId(null);
+            notify(archiving.length === 1 ? `${archiving[0].name} moved to Archived Agent Applications` : `${archiving.length} applications moved to Archived Agent Applications`);
+            setArchiving(null);
           }}
         />
       )}

@@ -6,7 +6,6 @@ import { Sidebar } from "./sidebar";
 import { MobileSidebar } from "./mobile-sidebar";
 import { Topbar } from "./topbar";
 import { UserProvider, useUser } from "./user-context";
-import { ProfilePanel } from "./profile-panel";
 import { SignedOutScreen } from "./signed-out-screen";
 
 function AppShellInner({ children }: { children: ReactNode }) {
@@ -28,7 +27,6 @@ function AppShellInner({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <ProfilePanel />
     </div>
   );
 }
