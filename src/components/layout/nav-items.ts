@@ -1,21 +1,4 @@
-import {
-  LayoutDashboard,
-  MessageSquare,
-  Globe2,
-  Landmark,
-  BookOpen,
-  Building2,
-  Users,
-  UserCog,
-  Users2,
-  FileText,
-  Target,
-  LineChart,
-  GraduationCap,
-  Archive,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+import { navIcons, type NavIcon } from "./nav-icons";
 
 export interface NavSubItem {
   label: string;
@@ -26,7 +9,7 @@ export interface NavSubItem {
 export interface NavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: NavIcon;
   children?: NavSubItem[];
 }
 
@@ -42,7 +25,7 @@ export const navSections: NavSection[] = [
       {
         label: "Admin Dashboard",
         href: "/",
-        icon: LayoutDashboard,
+        icon: navIcons.dashboard,
         children: [
           { label: "Branch Performance", href: "/performance/branches" },
           { label: "Counsellor Performance", href: "/performance/counsellors" },
@@ -54,7 +37,7 @@ export const navSections: NavSection[] = [
       {
         label: "Leads",
         href: "/leads",
-        icon: Users2,
+        icon: navIcons.leads,
         children: [
           { label: "All Leads", href: "/leads" },
           { label: "Affiliate Leads", href: "/leads?source=affiliate", badge: "New" },
@@ -67,7 +50,7 @@ export const navSections: NavSection[] = [
       {
         label: "Applications",
         href: "/applications",
-        icon: FileText,
+        icon: navIcons.applications,
         children: [
           { label: "Add New Application", href: "/applications?action=add" },
           { label: "Direct Applications", href: "/applications?source=direct" },
@@ -78,7 +61,7 @@ export const navSections: NavSection[] = [
       {
         label: "Communications",
         href: "/whatsapp-workspace",
-        icon: MessageSquare,
+        icon: navIcons.communications,
         children: [
           { label: "WhatsApp Workspace", href: "/whatsapp-workspace" },
           { label: "WhatsApp Accounts", href: "/whatsapp-accounts" },
@@ -98,7 +81,7 @@ export const navSections: NavSection[] = [
       {
         label: "Countries",
         href: "/countries",
-        icon: Globe2,
+        icon: navIcons.countries,
         children: [
           { label: "Country Management", href: "/countries/management" },
           { label: "Add Represent Country", href: "/countries?action=add" },
@@ -108,16 +91,17 @@ export const navSections: NavSection[] = [
       {
         label: "Institutions",
         href: "/institutions",
-        icon: Landmark,
+        icon: navIcons.institutions,
         children: [
           { label: "Add Institution", href: "/institutions/new" },
           { label: "View Institutions", href: "/institutions" },
+          { label: "AI Course Finder", href: "/institutions/research", badge: "AI" },
         ],
       },
       {
         label: "Courses",
         href: "/courses",
-        icon: BookOpen,
+        icon: navIcons.courses,
         children: [
           { label: "Add Courses", href: "/courses/new" },
           { label: "All Courses", href: "/courses" },
@@ -128,7 +112,7 @@ export const navSections: NavSection[] = [
       {
         label: "Office",
         href: "/office",
-        icon: Building2,
+        icon: navIcons.office,
         children: [
           { label: "Branch Office", href: "/office" },
           { label: "Front Office", href: "/office/front-office" },
@@ -140,7 +124,7 @@ export const navSections: NavSection[] = [
       {
         label: "People",
         href: "/people",
-        icon: Users,
+        icon: navIcons.people,
         children: [
           { label: "Add People", href: "/people/new" },
           { label: "View People", href: "/people" },
@@ -153,7 +137,7 @@ export const navSections: NavSection[] = [
       {
         label: "Agent Management",
         href: "/agent-management",
-        icon: UserCog,
+        icon: navIcons.agents,
         children: [
           { label: "Add New Agent", href: "/agent-management/new" },
           { label: "Pending Agents", href: "/agent-management/pending" },
@@ -169,7 +153,7 @@ export const navSections: NavSection[] = [
       {
         label: "Target Setup",
         href: "/target-setup",
-        icon: Target,
+        icon: navIcons.targets,
         children: [
           { label: "Add Target", href: "/target-setup/new" },
           { label: "Target List", href: "/target-setup" },
@@ -179,7 +163,7 @@ export const navSections: NavSection[] = [
       {
         label: "Finance",
         href: "/finance",
-        icon: LineChart,
+        icon: navIcons.finance,
         children: [
           { label: "Finance Overview", href: "/finance" },
           { label: "Agent Commission", href: "/finance/agent-commission" },
@@ -192,7 +176,7 @@ export const navSections: NavSection[] = [
       {
         label: "BHE Training",
         href: "/bhe-training",
-        icon: GraduationCap,
+        icon: navIcons.training,
         children: [
           { label: "Training Hub", href: "/bhe-training" },
           { label: "Training Periods", href: "/bhe-training/programmes" },
@@ -208,7 +192,7 @@ export const navSections: NavSection[] = [
       {
         label: "Archived",
         href: "/archived",
-        icon: Archive,
+        icon: navIcons.archived,
         children: [
           { label: "Archived Leads", href: "/archived/leads" },
           { label: "Archived Applications", href: "/archived/applications" },
@@ -218,7 +202,7 @@ export const navSections: NavSection[] = [
       {
         label: "Settings",
         href: "/settings",
-        icon: Settings,
+        icon: navIcons.settings,
         children: [
           { label: "Menu Settings", href: "/settings/menu" },
           { label: "Menu Permission Settings", href: "/settings/menu-permissions" },

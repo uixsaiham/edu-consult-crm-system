@@ -244,7 +244,7 @@ function CourseList({ initial }: { initial: { category: string; level: string; i
                       <p className="mt-1 text-[11px] text-muted-foreground">{durationLabel(c.duration)} · {c.modes[0]}{c.modes.length > 1 ? ` +${c.modes.length - 1}` : ""}</p>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3">
-                      <p className="font-semibold tabular-nums text-foreground">{c.intlFee ? formatFee(c.intlFee, c.currency) : <span className="font-normal text-muted-foreground">Home only</span>}</p>
+                      <p className="font-semibold tabular-nums text-foreground">{c.intlFee ? formatFee(c.intlFee, c.currency) : <span className="font-normal text-muted-foreground">{c.homeFee ? "Home only" : "Fee to add"}</span>}</p>
                       <p className="text-[11px] text-muted-foreground">{c.homeFee ? `Home ${formatFee(c.homeFee, c.currency)}${c.studentFinance ? " · SFE" : ""}` : c.deposit ? `Deposit ${formatFee(c.deposit, c.currency)}` : " "}</p>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3">

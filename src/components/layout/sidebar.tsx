@@ -42,7 +42,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "relative z-20 hidden md:flex h-full shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 ease-out",
+        "relative z-30 hidden md:flex h-full shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-200 ease-out",
         collapsed ? "w-[72px]" : "w-64"
       )}
     >
@@ -53,7 +53,7 @@ export function Sidebar({
           </div>
           <button
             onClick={onToggle}
-            className="absolute -right-3.5 top-[18px] flex size-7 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition-all hover:scale-105 hover:bg-surface-hover active:scale-95"
+            className="absolute -right-3.5 top-[18px] z-10 flex size-7 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition-all hover:scale-105 hover:bg-surface-hover active:scale-95"
             aria-label="Expand sidebar"
             aria-expanded={false}
           >

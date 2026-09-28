@@ -13,6 +13,7 @@ import { canSee, childKey, defaultVisible, itemKey, lockedFor, menuPermissionSto
 import { logAudit } from "@/lib/settings/audit";
 import { useSettingsStore } from "@/lib/settings/store";
 import { cn } from "@/lib/utils";
+import type { NavIcon } from "@/components/layout/nav-icons";
 
 export default function MenuPermissionsPage() {
   const { user } = useUser();
@@ -232,7 +233,7 @@ export default function MenuPermissionsPage() {
 }
 
 function Row({ label, icon: Icon, note, dim, strong, roles, state, onToggle }: {
-  label: string; icon?: typeof Eye; note?: string; dim?: boolean; strong?: boolean; roles: Role[];
+  label: string; icon?: NavIcon; note?: string; dim?: boolean; strong?: boolean; roles: Role[];
   state: (r: Role) => { on: boolean; changed: boolean; locked: boolean; parentOff?: boolean }; onToggle: (r: Role, v: boolean) => void;
 }) {
   return (
