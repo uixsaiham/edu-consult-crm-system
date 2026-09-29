@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Award, BookOpen, GraduationCap, LineChart, Plus, RotateCcw, SearchX, ShieldCheck, Video } from "lucide-react";

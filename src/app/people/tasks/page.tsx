@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ArrowRight, BellRing, CalendarClock, Clock3, ListChecks, Plus, RotateCcw, Save, Trash2, Workflow, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";

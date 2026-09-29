@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import { Download, Handshake, UserCog } from "lucide-react";
 import { OperationsOverview } from "@/components/dashboard/operations-overview";
 import { StatCards } from "@/components/dashboard/stat-cards";
