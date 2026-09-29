@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Building2, Clock, Globe, Landmark, Plus } from "lucide-react";

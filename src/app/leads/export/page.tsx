@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Download, RotateCcw, Search, X } from "lucide-react";
 import { HeaderCheckbox, RowCheckbox, selectedRowClass } from "@/components/ui/row-selection";

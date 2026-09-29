@@ -1,12 +1,14 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@/components/layout/user-context";
 import { TargetForm, draftFrom } from "@/components/targets/target-form";
 import { allIntakes, getTarget, intakeWindow, metrics, nextIntake, scopes, type Metric, type Scope } from "@/lib/mock/targets";
 
-export default function AddTargetPage() {
+function AddTargetPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading…</p>}>
       <AddTarget />
@@ -42,3 +44,5 @@ function AddTarget() {
 
   return <TargetForm key={params.toString()} initial={initial} />;
 }
+
+export default function AddTargetPage() { return <Suspense><AddTargetPageInner /></Suspense>; }

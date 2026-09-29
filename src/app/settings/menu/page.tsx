@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ChevronDown, Eye, EyeOff, Lock, RotateCcw, Save, ShieldCheck } from "lucide-react";

@@ -1,11 +1,13 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CourseForm } from "@/components/courses/course-form";
 import { getCourse } from "@/lib/mock/courses";
 
-export default function AddCoursePage() {
+function AddCoursePageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading…</p>}>
       <AddCourse />
@@ -18,3 +20,5 @@ function AddCourse() {
   const source = copy ? getCourse(copy) : undefined;
   return <CourseForm key={copy ?? "new"} copyOf={source} />;
 }
+
+export default function AddCoursePage() { return <Suspense><AddCoursePageInner /></Suspense>; }

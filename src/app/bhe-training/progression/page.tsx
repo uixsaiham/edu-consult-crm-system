@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -39,7 +41,7 @@ const inDate = (s: LearnerStatus) => s === "Completed" || s === "Expiring";
 const needsAction = (s: LearnerStatus) => s === "Overdue" || s === "Expired";
 const dot: Record<LearnerStatus, string> = { Completed: "bg-success", Expiring: "bg-warning", "In progress": "bg-primary", "Not started": "bg-border-strong", Overdue: "bg-danger", Expired: "bg-danger" };
 
-export default function ProgressionPage() {
+function ProgressionPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading progress…</p>}>
       <FromParams />
@@ -452,3 +454,5 @@ function Empty() {
     </div>
   );
 }
+
+export default function ProgressionPage() { return <Suspense><ProgressionPageInner /></Suspense>; }

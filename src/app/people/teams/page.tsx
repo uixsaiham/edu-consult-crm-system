@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState, type FormEvent } from "react";
 import { Building2, Crown, GraduationCap, PencilLine, Plus, Search, Target, Trash2, UserMinus, UserPlus, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";

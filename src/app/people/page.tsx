@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -31,7 +33,7 @@ import { cn } from "@/lib/utils";
 
 const statusTabs: ("All" | StaffStatus)[] = ["All", "Active", "On leave", "Invited", "Inactive"];
 
-export default function PeoplePage() {
+function PeoplePageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading people…</p>}>
       <PeopleFromParams />
@@ -282,3 +284,5 @@ function PeopleList({ initialRole, initialBranch }: { initialRole: string; initi
     </div>
   );
 }
+
+export default function PeoplePage() { return <Suspense><PeoplePageInner /></Suspense>; }

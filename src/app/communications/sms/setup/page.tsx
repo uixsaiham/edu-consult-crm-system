@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, type ReactNode } from "react";
 import { CheckCircle2, Circle, CircleAlert, Clock3, FlaskConical, KeyRound, Loader2, RefreshCw, Send, ServerCog } from "lucide-react";
 import { Card } from "@/components/ui/card";

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -38,7 +40,7 @@ const statusTabs = ["All", "Active", "Suspended", "Inactive"] as const;
 type Tab = (typeof statusTabs)[number];
 const approvedStatuses = new Set<AgentStatus>(["Active", "Suspended", "Inactive"]);
 
-export default function AgentsPage() {
+function AgentsPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading agents…</p>}>
       <AgentsFromParams />
@@ -392,3 +394,5 @@ function AgentList({ initialAgreement }: { initialAgreement: string }) {
     </div>
   );
 }
+
+export default function AgentsPage() { return <Suspense><AgentsPageInner /></Suspense>; }

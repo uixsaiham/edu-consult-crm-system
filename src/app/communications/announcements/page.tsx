@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Archive, BellRing, CalendarClock, Eye, EyeOff, Inbox, Megaphone, Paperclip, Pin, Plus } from "lucide-react";
@@ -32,7 +34,7 @@ function needsAction(a: Announcement) {
   return a.status === "Published" && a.requiresAck && !a.acknowledgedByMe;
 }
 
-export default function AnnouncementsPage() {
+function AnnouncementsPageInner() {
   const { user } = useUser();
   const [items, setItems] = useState<Announcement[]>(getAnnouncements);
   const [tab, setTab] = useState<Tab>("all");
@@ -368,3 +370,5 @@ function AnnouncementRow({ item, active, onOpen }: { item: Announcement; active:
     </button>
   );
 }
+
+export default function AnnouncementsPage() { return <Suspense><AnnouncementsPageInner /></Suspense>; }

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Fragment, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Award, Banknote, CalendarClock, ChevronDown, Download, Hourglass, Settings2, Wallet } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";

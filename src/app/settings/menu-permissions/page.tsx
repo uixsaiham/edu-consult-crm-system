@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, Info, Lock, MoreHorizontal, RotateCcw, Save, Search, SlidersHorizontal } from "lucide-react";

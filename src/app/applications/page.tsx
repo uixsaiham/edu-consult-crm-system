@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -92,7 +94,7 @@ const intakeValue = (intake: string) => {
 
 type SortKey = "student" | "intake" | "created";
 
-export default function ApplicationsPage() {
+function ApplicationsPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading applications…</p>}>
       <ApplicationsFromParams />
@@ -951,3 +953,5 @@ function ConfirmDialog({ title, body, onCancel, onConfirm }: { title: string; bo
     </div>
   );
 }
+
+export default function ApplicationsPage() { return <Suspense><ApplicationsPageInner /></Suspense>; }

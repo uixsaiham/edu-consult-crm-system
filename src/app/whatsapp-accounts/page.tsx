@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { HeaderCheckbox, RowCheckbox, SelectionBar, selectedRowClass } from "@/components/ui/row-selection";
 import { useRowSelection } from "@/lib/use-row-selection";
 import { downloadCsv, toCsvRow } from "@/lib/csv";

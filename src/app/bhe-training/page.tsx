@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Award, BookOpen, GraduationCap, LineChart, Plus, RotateCcw, SearchX, ShieldCheck, Video } from "lucide-react";
@@ -35,7 +37,7 @@ import {
 } from "@/lib/mock/training";
 import { cn } from "@/lib/utils";
 
-export default function TrainingHubPage() {
+function TrainingHubPageInner() {
   const router = useRouter();
   const { user } = useUser();
   const me = getStaff().find((s) => s.name === user.name);
@@ -200,3 +202,5 @@ export default function TrainingHubPage() {
     </div>
   );
 }
+
+export default function TrainingHubPage() { return <Suspense><TrainingHubPageInner /></Suspense>; }

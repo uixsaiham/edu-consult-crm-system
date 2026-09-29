@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -35,7 +37,7 @@ import { cn } from "@/lib/utils";
 
 const axisTick = { fill: "var(--muted-foreground)", fontSize: 11 };
 
-export default function TargetOverviewPage() {
+function TargetOverviewPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading overview…</p>}>
       <FromParams />
@@ -310,3 +312,5 @@ function Leaderboard({
     </Card>
   );
 }
+
+export default function TargetOverviewPage() { return <Suspense><TargetOverviewPageInner /></Suspense>; }

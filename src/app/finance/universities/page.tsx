@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarClock, Download, Handshake, Landmark, MoreHorizontal, PencilLine, Plus, RefreshCw, SearchX, Wallet } from "lucide-react";

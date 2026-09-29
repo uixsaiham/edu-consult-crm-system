@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Copy, FlaskConical, Megaphone, MoreHorizontal, PencilLine, Plus, Send, Trash2, UserX, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -80,7 +82,7 @@ const assignmentOptions = [
   { value: "assigned", label: "Assigned only" },
 ];
 
-export default function LeadsPage() {
+function LeadsPageInner() {
   return <Suspense fallback={<p className="p-6 text-muted-foreground">Loading leads…</p>}><LeadsFromDashboard /></Suspense>;
 }
 
@@ -690,3 +692,5 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
     </div>
   );
 }
+
+export default function LeadsPage() { return <Suspense><LeadsPageInner /></Suspense>; }

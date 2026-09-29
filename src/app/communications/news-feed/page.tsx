@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState } from "react";
 import { Bookmark, CalendarDays, Clock, Flame, Hash, Newspaper, Trophy, X } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";

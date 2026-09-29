@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Archive, CalendarRange, Download, Eye, Mail, MoreHorizontal, PencilLine, Phone, RotateCcw, Tags, Trash2, Users2 } from "lucide-react";

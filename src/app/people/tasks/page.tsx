@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useState, type FormEvent } from "react";
 import { ArrowRight, BellRing, CalendarClock, Clock3, ListChecks, Plus, RotateCcw, Save, Trash2, Workflow, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
@@ -35,7 +37,7 @@ const priorityStyle: Record<TaskPriority, string> = {
 };
 const inline = "h-8 rounded-lg border border-border bg-surface px-2 text-xs text-foreground focus:border-primary focus:outline-none";
 
-export default function TaskSettingsPage() {
+function TaskSettingsPageInner() {
   const [saved, setSaved] = useState<TaskSettings>(getTaskSettings);
   const [draft, setDraft] = useState<TaskSettings>(() => structuredClone(saved));
   const [tab, setTab] = useState<Tab>("types");
@@ -372,3 +374,5 @@ function AddRuleModal({ types, onClose, onAdd }: { types: TaskType[]; onClose: (
     </Modal>
   );
 }
+
+export default function TaskSettingsPage() { return <Suspense><TaskSettingsPageInner /></Suspense>; }

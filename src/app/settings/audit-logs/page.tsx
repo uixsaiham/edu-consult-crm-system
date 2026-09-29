@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Download, FileDown, History, KeyRound, ShieldAlert, SlidersHorizontal } from "lucide-react";
@@ -21,7 +23,7 @@ const severityStyle: Record<AuditSeverity, { label: string; dot: string; cls: st
   critical: { label: "Critical", dot: "bg-danger", cls: "bg-danger-soft text-danger" },
 };
 
-export default function AuditLogsPage() {
+function AuditLogsPageInner() {
   return (
     <Suspense>
       <AuditLogs />
@@ -186,3 +188,5 @@ function AuditLogs() {
     </div>
   );
 }
+
+export default function AuditLogsPage() { return <Suspense><AuditLogsPageInner /></Suspense>; }

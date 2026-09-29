@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -47,7 +49,7 @@ const inTab = (c: Claim, t: Tab) =>
   (t === "disputed" && c.status === "Disputed") ||
   (t === "written" && c.status === "Written off");
 
-export default function PaymentsPage() {
+function PaymentsPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading payments…</p>}>
       <FromParams />
@@ -361,3 +363,5 @@ function Ledger({ initialTab, initialUniversity }: { initialTab: Tab; initialUni
     </div>
   );
 }
+
+export default function PaymentsPage() { return <Suspense><PaymentsPageInner /></Suspense>; }

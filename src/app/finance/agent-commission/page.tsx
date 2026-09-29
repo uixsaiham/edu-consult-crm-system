@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Banknote, Clock3, Download, FileDown, Hourglass, PauseCircle, PlayCircle, SearchX, Users, Wallet } from "lucide-react";

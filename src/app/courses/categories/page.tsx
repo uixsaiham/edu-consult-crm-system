@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, FolderTree, PencilLine, Plus, Tags, Trash2, TrendingUp, Wand2, X } from "lucide-react";

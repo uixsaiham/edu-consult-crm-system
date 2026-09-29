@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -47,7 +49,7 @@ const clock = (ms?: number) => (ms ? new Date(ms).toLocaleTimeString("en-GB", { 
 const mins = (from?: number, to?: number | null) => (from && to ? Math.max(0, Math.round((to - from) / 60000)) : 0);
 const waitTone = (m: number) => (m >= 20 ? "text-danger bg-danger-soft" : m >= 10 ? "text-warning bg-warning-soft" : "text-success bg-success-soft");
 
-export default function FrontOfficePage() {
+function FrontOfficePageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading front office…</p>}>
       <FrontOfficeFromParams />
@@ -502,3 +504,5 @@ function FinishDialog({ visit, onClose, onFinish }: { visit: Visit; onClose: () 
 function Err({ msg }: { msg?: string }) {
   return msg ? <span className="text-[11px] font-medium text-danger">{msg}</span> : null;
 }
+
+export default function FrontOfficePage() { return <Suspense><FrontOfficePageInner /></Suspense>; }

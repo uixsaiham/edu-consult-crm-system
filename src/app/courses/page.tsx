@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -54,7 +56,7 @@ type Tab = "All" | CourseStatus;
 type Sort = "" | "name" | "fee" | "updated";
 const PAGE = 15;
 
-export default function AllCoursesPage() {
+function AllCoursesPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading courses…</p>}>
       <CoursesFromParams />
@@ -401,3 +403,5 @@ function CompareDialog({ courses, counts, onClose }: { courses: Course[]; counts
     </Modal>
   );
 }
+
+export default function AllCoursesPage() { return <Suspense><AllCoursesPageInner /></Suspense>; }

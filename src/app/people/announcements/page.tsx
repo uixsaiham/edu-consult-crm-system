@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState, type FormEvent } from "react";
 import { AttachmentPicker, AttachmentThumb, extensionOf, isImage } from "@/components/communications/attachment-picker";
 import type { AnnouncementAttachment } from "@/lib/mock/communications";

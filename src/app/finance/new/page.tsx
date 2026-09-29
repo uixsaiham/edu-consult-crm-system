@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CircleAlert, Receipt } from "lucide-react";
@@ -33,7 +35,7 @@ import { cn } from "@/lib/utils";
 
 type Channel = Claim["channel"];
 
-export default function AddCommissionPage() {
+function AddCommissionPageInner() {
   const router = useRouter();
   const { user } = useUser();
   const agreements = getAgreements();
@@ -352,3 +354,5 @@ function Line({ label, value, strong }: { label: string; value: string; strong?:
 function Err({ msg }: { msg?: string }) {
   return msg ? <span className="mt-1 flex items-center gap-1 text-[11px] font-medium text-danger"><CircleAlert className="size-3" /> {msg}</span> : null;
 }
+
+export default function AddCommissionPage() { return <Suspense><AddCommissionPageInner /></Suspense>; }

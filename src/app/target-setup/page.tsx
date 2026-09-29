@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -41,7 +43,7 @@ import { cn } from "@/lib/utils";
 type Tab = "current" | "finished" | "archived";
 const inTab = (t: Target, x: Tab) => (x === "archived" ? t.archived : !t.archived && (x === "finished" ? isClosed(t) : !isClosed(t)));
 
-export default function TargetListPage() {
+function TargetListPageInner() {
   return (
     <Suspense fallback={<p className="p-6 text-muted-foreground">Loading targets…</p>}>
       <FromParams />
@@ -335,3 +337,5 @@ function AdjustDialog({ targets, onClose, onApply }: { targets: Target[]; onClos
     </Modal>
   );
 }
+
+export default function TargetListPage() { return <Suspense><TargetListPageInner /></Suspense>; }

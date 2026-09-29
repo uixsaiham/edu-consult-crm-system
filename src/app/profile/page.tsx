@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,7 +31,7 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number]["id"];
 
-export default function ProfilePage() {
+function ProfilePageInner() {
   return (
     <Suspense>
       <Profile />
@@ -155,3 +157,5 @@ function MyActivity({ name }: { name: string }) {
     </Card>
   );
 }
+
+export default function ProfilePage() { return <Suspense><ProfilePageInner /></Suspense>; }
