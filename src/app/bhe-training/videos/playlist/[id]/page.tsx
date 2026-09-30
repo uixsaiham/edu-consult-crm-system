@@ -73,7 +73,7 @@ export default function PlaylistPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <Link href="/bhe-training/videos" className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"><ChevronLeft className="size-3.5" /> Video Sessions · {playlist.category}</Link>
           <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{playlist.title}</h2>

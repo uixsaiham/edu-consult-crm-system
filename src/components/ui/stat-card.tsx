@@ -35,22 +35,26 @@ export function StatCard({
   tone?: StatTone;
   onClick?: () => void;
 }) {
+  const hasNote = note !== undefined && note !== null && note !== "";
+  // On phones the card is ~165px wide, so the note moves under the label instead of
+  // squeezing the value, and the label may wrap to two lines rather than truncating.
   const content = (
     <>
-      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", toneClass[tone])}>
+      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-xl sm:size-9", toneClass[tone])}>
         <Icon className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-xl font-bold leading-tight tabular-nums text-foreground">{value}</span>
-        <span className="block truncate text-xs text-muted-foreground">{label}</span>
+        <span className="block break-words text-lg font-bold leading-tight tabular-nums text-foreground sm:truncate sm:text-xl">{value}</span>
+        <span className="line-clamp-2 text-xs leading-snug text-muted-foreground sm:line-clamp-1">{label}</span>
+        {hasNote && <span className="mt-0.5 block truncate text-[11px] font-medium tabular-nums text-muted-foreground/80 sm:hidden">{note}</span>}
       </span>
-      {note !== undefined && note !== null && note !== "" && (
-        <span className="max-w-[45%] shrink-0 truncate text-right text-xs font-medium tabular-nums text-muted-foreground">{note}</span>
+      {hasNote && (
+        <span className="hidden max-w-[45%] shrink-0 truncate text-right text-xs font-medium tabular-nums text-muted-foreground sm:block">{note}</span>
       )}
     </>
   );
   const className =
-    "flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-left card-shadow";
+    "flex min-w-0 items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-3 text-left card-shadow sm:gap-3 sm:px-4";
   return onClick ? (
     <button type="button" onClick={onClick} className={cn(className, "transition-colors hover:border-border-strong")}>
       {content}

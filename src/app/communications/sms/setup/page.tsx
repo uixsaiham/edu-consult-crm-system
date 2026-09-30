@@ -78,7 +78,7 @@ export default function SmsSetupPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">SMS Setup</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Twilio connection, UK sender setup, sending costs and the rollout plan. Credentials live only in the server&apos;s environment — this page shows whether they&apos;re set, never their values.</p>

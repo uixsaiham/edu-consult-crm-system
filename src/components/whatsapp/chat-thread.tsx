@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CheckCheck, Info, Paperclip, Send, Smile } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, Info, Paperclip, Send, Smile } from "lucide-react";
 import { conversationStatusStyles, type ChatMessage, type Conversation } from "@/lib/mock/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +34,13 @@ export function ChatThread({
   conversation,
   onSend,
   onToggleInfo,
+  onBack,
 }: {
   conversation: Conversation;
   onSend: (text: string) => void;
   onToggleInfo?: () => void;
+  /** Phones only: return to the conversation list. */
+  onBack?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,11 @@ export function ChatThread({
     <div className="flex h-full min-w-0 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
+          {onBack && (
+            <button type="button" onClick={onBack} aria-label="Back to conversations" className="-ml-2 flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground md:hidden">
+              <ArrowLeft className="size-4" />
+            </button>
+          )}
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[11px] font-bold text-primary">
             {conversation.initials}
           </span>

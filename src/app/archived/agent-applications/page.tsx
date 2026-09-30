@@ -110,7 +110,7 @@ export default function ArchivedAgentApplicationsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Archived Agent Applications</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Partner applications that were rejected, withdrawn or went quiet. KYC evidence is kept for {archiveKinds["agent-applications"].retentionYears} years; restore one to reopen it in Pending Agents.</p>

@@ -48,7 +48,7 @@ export function OperationsOverview() {
 
   return (
     <section aria-labelledby="operations-heading" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 id="operations-heading" className="text-lg font-bold tracking-tight">Where to focus next</h2>

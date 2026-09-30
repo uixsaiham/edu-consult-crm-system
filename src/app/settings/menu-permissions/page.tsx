@@ -95,7 +95,7 @@ export default function MenuPermissionsPage() {
 
   return (
     <div className="flex flex-col gap-4 pb-20">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Menu Permission Settings</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Choose which sidebar entries each role sees. Defaults follow each role&apos;s module access; ticks that differ from the default are marked. What a role can do inside a page is set in <Link href="/people/roles" className="font-semibold text-primary hover:underline">People › Role</Link>.</p>

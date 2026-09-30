@@ -140,7 +140,7 @@ export default function AmbassadorsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">My Ambassadors</h2>
           <p className="mt-1 text-sm text-muted-foreground">Students, alumni and community leaders who refer applicants with a personal link — and earn a reward for each enrolment.</p>

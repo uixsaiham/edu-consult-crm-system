@@ -72,7 +72,7 @@ export function ConnectionBanner({ conn, loading }: { conn: SmsConnection | null
   return (
     <div className={cn("flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3", tone === "violet" && "border-violet-500/25 bg-violet-500/5", tone === "warning" && "border-warning/30 bg-warning-soft", tone === "neutral" && "border-border bg-surface-muted", tone === "danger" && "border-danger/25 bg-danger-soft")}>
       <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface", tone === "violet" && "text-violet-600 dark:text-violet-400", tone === "warning" && "text-warning", tone === "danger" && "text-danger", tone === "neutral" && "text-muted-foreground")}><Icon className="size-4" /></span>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-52">
         <p className="text-sm font-semibold text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground">{body}</p>
       </div>

@@ -16,7 +16,7 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
   const firstName = user.name.split(" ")[0];
 
   return (
-    <header className="sticky top-0 z-20 flex min-h-20 shrink-0 items-center gap-2 border-b border-border bg-surface/70 px-4 py-3 backdrop-blur-xl sm:gap-3 sm:px-6">
+    <header className="sticky top-0 z-20 flex min-h-16 shrink-0 items-center gap-2 border-b border-border bg-surface/70 px-4 py-2 sm:min-h-20 sm:py-3 backdrop-blur-xl sm:gap-3 sm:px-6">
       <button
         onClick={onMobileMenu}
         className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-hover hover:text-foreground md:hidden"
@@ -26,11 +26,12 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
       </button>
 
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <p className="hidden text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 sm:block">
           Overview
         </p>
-        <h1 className="text-base font-bold leading-tight tracking-tight sm:text-2xl">
-          Welcome back, {firstName}
+        <h1 className="truncate text-base font-bold leading-tight tracking-tight sm:text-2xl">
+          <span className="sm:hidden">Hi, {firstName}</span>
+          <span className="hidden sm:inline">Welcome back, {firstName}</span>
         </h1>
       </div>
 

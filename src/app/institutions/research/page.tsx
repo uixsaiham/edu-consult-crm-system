@@ -119,7 +119,7 @@ export default function CourseFinderPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground"><Sparkles className="size-6 text-primary" /> AI Course Finder</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Choose any university in the world. The AI agent reads its official website and lists its courses — pick the ones you want and add them to Courses.</p>

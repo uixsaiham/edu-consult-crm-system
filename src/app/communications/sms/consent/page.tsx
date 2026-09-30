@@ -91,7 +91,7 @@ export default function SmsConsentPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">SMS Consent</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Who can receive which texts. Service messages and marketing consent are recorded separately; anyone who texts STOP is blocked from all SMS automatically.</p>

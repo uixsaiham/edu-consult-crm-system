@@ -95,7 +95,7 @@ export default function ArchivedLeadsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Archived Leads</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Enquiries taken out of the pipeline. Restore one to put it back in All Leads with its details intact, or delete it once its {archiveKinds.leads.retentionYears}-year retention period ends.</p>

@@ -105,7 +105,7 @@ export default function ArchivedApplicationsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Archived Applications</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Closed student files from past intakes — enrolled, refused or withdrawn. Kept for {archiveKinds.applications.retentionYears} years for university audits and UKVI compliance; restore one to reopen it.</p>

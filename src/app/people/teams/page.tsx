@@ -62,7 +62,7 @@ export default function TeamsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Teams</h2>
           <p className="mt-1 text-sm text-muted-foreground">Group people by branch or focus so work, targets and announcements go to the right place.</p>

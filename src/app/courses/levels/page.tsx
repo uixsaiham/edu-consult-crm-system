@@ -52,7 +52,7 @@ export default function CourseLevelsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Course Levels</h2>
           <p className="mt-1 text-sm text-muted-foreground">Study levels and their standard entry requirements. New courses start with these requirements, so counsellors quote the same rules.</p>

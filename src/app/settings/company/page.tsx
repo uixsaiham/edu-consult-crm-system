@@ -84,7 +84,7 @@ export default function CompanySettingsPage() {
 
   return (
     <div className="flex flex-col gap-4 pb-20">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Company Settings</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Organisation details, regional defaults, lead handling, communications and security rules that apply across the CRM. Every change is recorded in the audit log.</p>
@@ -169,7 +169,7 @@ export default function CompanySettingsPage() {
             <Field label="WhatsApp greeting" className="sm:col-span-2" hint={`${s.whatsappGreeting.length} characters`}><Textarea rows={3} value={s.whatsappGreeting} onChange={(e) => set("whatsappGreeting", e.target.value)} /></Field>
             <Field label="SMS sender ID" hint="Shown as the sender on UK texts · max 11 characters"><TextInput value={s.smsSenderId} maxLength={11} onChange={(e) => set("smsSenderId", e.target.value)} /><Err m={err("smsSenderId")} /></Field>
             <Field label="Quiet hours" hint="No marketing texts or automated reminders in this window">
-              <div className="flex items-center gap-2"><TextInput type="time" value={s.quietHoursStart} onChange={(e) => set("quietHoursStart", e.target.value)} /><span className="text-xs text-muted-foreground">to</span><TextInput type="time" value={s.quietHoursEnd} onChange={(e) => set("quietHoursEnd", e.target.value)} /></div>
+              <div className="flex items-center gap-2"><TextInput type="time" className="min-w-0 px-2.5" value={s.quietHoursStart} onChange={(e) => set("quietHoursStart", e.target.value)} /><span className="text-xs text-muted-foreground">to</span><TextInput type="time" className="min-w-0 px-2.5" value={s.quietHoursEnd} onChange={(e) => set("quietHoursEnd", e.target.value)} /></div>
             </Field>
             <p className="text-xs text-muted-foreground sm:col-span-2">Twilio connection, test mode and costs: <Link href="/communications/sms/setup" className="font-semibold text-primary hover:underline">Communications › SMS Setup</Link>.</p>
           </Section>

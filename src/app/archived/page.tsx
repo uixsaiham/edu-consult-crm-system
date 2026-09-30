@@ -43,7 +43,7 @@ export default function ArchiveOverviewPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Archive</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Closed leads, student applications and partner applications, kept out of the working lists but never lost. Restore anything in one click; records past their retention date can be deleted for good.</p>

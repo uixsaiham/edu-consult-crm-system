@@ -64,7 +64,7 @@ export default function LeadStatusesPage() {
   return (
     <div className="flex flex-col gap-4">
       <header>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Lead statuses</h2>
           <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold tabular-nums text-primary">
             {activeCount} of {statuses.length} active

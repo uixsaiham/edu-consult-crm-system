@@ -102,7 +102,7 @@ export default function UniversityCommissionPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">University Commission</h2>
           <p className="mt-1 text-sm text-muted-foreground">Commission agreements with each university — rates, payment terms and what each one owes BHE.</p>

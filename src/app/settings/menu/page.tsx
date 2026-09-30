@@ -69,7 +69,7 @@ export default function MenuSettingsPage() {
 
   return (
     <div className="flex flex-col gap-4 pb-20">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Menu Settings</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Rename, reorder and hide sidebar entries for everyone. To choose which roles see which entries, use Menu Permission Settings.</p>
@@ -106,7 +106,7 @@ export default function MenuSettingsPage() {
                         <LabelInput value={c.labels[key] ?? ""} placeholder={defaults.get(key)?.label ?? ""} dim={off} onChange={(v) => rename(key, v)} />
                         {item.children?.length ? (
                           <button type="button" onClick={() => setOpen(expanded ? null : key)} aria-expanded={expanded} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-surface-hover hover:text-foreground">
-                            {item.children.filter((ch) => !hidden.has(childKey(item, ch))).length}/{item.children.length} pages <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
+                            {item.children.filter((ch) => !hidden.has(childKey(item, ch))).length}/{item.children.length}<span className="hidden sm:inline"> pages</span> <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
                           </button>
                         ) : null}
                         <Visibility on={!off} locked={locked.has(key)} label={item.label} onToggle={() => toggle(key)} />

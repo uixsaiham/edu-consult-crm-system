@@ -78,7 +78,7 @@ export default function SmsCampaignsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">SMS Campaigns</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Targeted texts about courses, intakes, events and the ambassador programme. Only contacts with a recorded marketing opt-in are included, and every message carries a STOP opt-out.</p>

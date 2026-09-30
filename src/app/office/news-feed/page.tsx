@@ -83,7 +83,7 @@ export default function OfficeNewsFeedPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Office News Feed</h2>
           <p className="mt-1 text-sm text-muted-foreground">Notices for each branch — closures, visitors, events and facility updates. Company-wide news lives in <Link href="/communications/news-feed" className="font-medium text-primary hover:underline">Communications</Link>.</p>

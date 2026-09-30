@@ -69,9 +69,9 @@ export default function CountryManagementPage() {
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">Country management</h2>
             <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-semibold tabular-nums text-primary">
               {countries.length} countries

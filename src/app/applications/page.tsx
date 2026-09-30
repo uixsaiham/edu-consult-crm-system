@@ -256,7 +256,7 @@ function ApplicationsList({ channel, initialSearch }: { channel: ChannelKey; ini
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             {channel === "all" ? "Applications" : `${channelDef.label} Applications`}

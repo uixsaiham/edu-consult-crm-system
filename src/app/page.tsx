@@ -26,7 +26,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h2>
           <p className="mt-1 text-sm text-muted-foreground">Last 12 months · Updated {updatedLabel}</p>
