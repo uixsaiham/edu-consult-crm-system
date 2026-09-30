@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -10,16 +10,24 @@ import { useMenu } from "./use-menu";
 import { AccountMenu } from "./account-menu";
 import { cn } from "@/lib/utils";
 
-export function MobileSidebar({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+type MobileSidebarProps = { open: boolean; onClose: () => void };
+
+// See Sidebar: the fallback keeps the menu renderable while search params load.
+export function MobileSidebar(props: MobileSidebarProps) {
+  return (
+    <Suspense fallback={<MobileSidebarView {...props} search="" />}>
+      <MobileSidebarWithSearch {...props} />
+    </Suspense>
+  );
+}
+
+function MobileSidebarWithSearch(props: MobileSidebarProps) {
+  return <MobileSidebarView {...props} search={useSearchParams().toString()} />;
+}
+
+function MobileSidebarView({ open, onClose, search }: MobileSidebarProps & { search: string }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentFullPath = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+  const currentFullPath = search ? `${pathname}?${search}` : pathname;
   const sections = useMenu();
   const allNavItems = sections.flatMap((section) => section.items);
 

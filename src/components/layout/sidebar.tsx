@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -10,16 +10,25 @@ import { useMenu } from "./use-menu";
 import { AccountMenu } from "./account-menu";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({
-  collapsed,
-  onToggle,
-}: {
-  collapsed: boolean;
-  onToggle: () => void;
-}) {
+type SidebarProps = { collapsed: boolean; onToggle: () => void };
+
+// useSearchParams needs a Suspense boundary for static prerendering. The fallback is the same
+// sidebar without the query string, so the server HTML still has the full navigation.
+export function Sidebar(props: SidebarProps) {
+  return (
+    <Suspense fallback={<SidebarView {...props} search="" />}>
+      <SidebarWithSearch {...props} />
+    </Suspense>
+  );
+}
+
+function SidebarWithSearch(props: SidebarProps) {
+  return <SidebarView {...props} search={useSearchParams().toString()} />;
+}
+
+function SidebarView({ collapsed, onToggle, search }: SidebarProps & { search: string }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentFullPath = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+  const currentFullPath = search ? `${pathname}?${search}` : pathname;
   const sections = useMenu();
   const allNavItems = sections.flatMap((section) => section.items);
 
