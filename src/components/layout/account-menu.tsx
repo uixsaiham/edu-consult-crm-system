@@ -39,7 +39,6 @@ export function AccountMenu({ placement, onNavigate }: { placement: Placement; o
     setOpen(false);
     onNavigate?.();
   };
-  const status = presenceStatuses.find((p) => p.value === user.status) ?? presenceStatuses[0];
 
   const links = [
     { href: "/profile", icon: UserRound, label: "My profile", hint: "Details, performance and activity" },
@@ -85,11 +84,10 @@ export function AccountMenu({ placement, onNavigate }: { placement: Placement; o
             </div>
           </div>
 
-          <div className="mx-3 mb-2 rounded-xl border border-border p-1">
-            <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
+          <div role="radiogroup" aria-label="Status" className="space-y-1 border-t border-border p-1.5">
             <div className="grid grid-cols-2 gap-0.5">
               {presenceStatuses.map((p) => (
-                <button key={p.value} type="button" role="menuitemradio" aria-checked={user.status === p.value} title={p.hint} onClick={() => updateUser({ status: p.value })} className={cn("flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-xs transition-colors", user.status === p.value ? "bg-primary-soft font-semibold text-primary" : "text-foreground hover:bg-surface-hover")}>
+                <button key={p.value} type="button" role="menuitemradio" aria-checked={user.status === p.value} title={p.hint} onClick={() => updateUser({ status: p.value })} className={cn("flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs transition-colors", user.status === p.value ? "bg-surface-hover font-semibold text-foreground" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground")}>
                   <span className={cn("size-2 shrink-0 rounded-full", p.dot)} />
                   <span className="truncate">{p.value}</span>
                 </button>
@@ -98,11 +96,10 @@ export function AccountMenu({ placement, onNavigate }: { placement: Placement; o
             <input
               value={user.statusMessage}
               onChange={(e) => updateUser({ statusMessage: e.target.value.slice(0, 60) })}
-              placeholder="Add a status message, e.g. At the Sylhet fair"
+              placeholder="Set a status message…"
               aria-label="Status message"
-              className="mt-1 h-8 w-full rounded-lg bg-surface-muted px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
+              className="h-8 w-full rounded-xl bg-surface-muted px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
             />
-            <p className="px-2 pb-0.5 pt-1 text-[10px] text-muted-foreground">{status.hint}</p>
           </div>
 
           <div className="border-t border-border p-1.5">

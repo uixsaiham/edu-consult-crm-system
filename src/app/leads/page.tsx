@@ -44,9 +44,10 @@ import {
   counsellors,
   getLeads,
   leadStatuses,
-  leadStatusStyles,
   type LeadRow,
+  type LeadStatus,
 } from "@/lib/mock/leads";
+import { LeadStatusMenu } from "@/components/leads/lead-status-menu";
 import { operationsSnapshotDate } from "@/lib/mock/applications";
 import { cn } from "@/lib/utils";
 import { buttonPrimary } from "@/components/ui/button-styles";
@@ -209,6 +210,11 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
   }
 
   const selectedLeads = useMemo(() => leads.filter((l) => selected.has(l.id)), [leads, selected]);
+
+  function handleStatusChange(lead: LeadRow, status: LeadStatus, statusDetail?: string) {
+    setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status, statusDetail } : l)));
+    notify(`${lead.name} moved to ${statusDetail ? `${status} · ${statusDetail}` : status}`);
+  }
 
   function handleAdd(lead: LeadRow) {
     setLeads((prev) => [lead, ...prev]);
@@ -520,7 +526,6 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
                 </tr>
               ) : (
                 pageItems.map((lead) => {
-                  const status = leadStatusStyles[lead.status];
                   return (
                     <tr key={lead.id} className={cn("group transition-colors hover:bg-surface-muted/40", selectedRowClass(selection, lead.id))}>
                       <td className="py-3 pl-6 pr-2 align-middle">
@@ -564,16 +569,7 @@ function LeadsList({ initialSearch }: { initialSearch: string }) {
                         </div>
                       </td>
                       <td className="px-3 py-3 align-middle whitespace-nowrap">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                            status.bg,
-                            status.text
-                          )}
-                        >
-                          <span className={cn("size-1.5 rounded-full", status.dot)} />
-                          {lead.status}
-                        </span>
+                        <LeadStatusMenu status={lead.status} detail={lead.statusDetail} leadName={lead.name} onChange={(next, detail) => handleStatusChange(lead, next, detail)} />
                       </td>
                       <td className="px-3 py-3 align-middle">
                         <div className="flex items-center gap-2.5">

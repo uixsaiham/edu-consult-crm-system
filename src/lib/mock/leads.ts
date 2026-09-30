@@ -17,6 +17,8 @@ export interface LeadRow {
   branch: string;
   counsellor: string;
   status: LeadStatus;
+  /** Optional detailed status from Leads Status settings, e.g. "Preparing for IELTS" under Follow-up. */
+  statusDetail?: string;
   leadNote: string;
   leadSource: string;
   createdDate: string;

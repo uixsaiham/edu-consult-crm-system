@@ -4,14 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import { useMemo, useState } from "react";
 import {
-  AlertTriangle,
   Building2,
   GraduationCap,
   PoundSterling,
-  Rocket,
   Table2,
   Target,
-  Trophy,
   TrendingUp,
   UserPlus,
   FileText,
@@ -36,13 +33,11 @@ import {
 } from "@/components/performance/metrics";
 import {
   DeltaBadge,
-  InsightCard,
   KpiCard,
   KpiGrid,
   MetricToggle,
   PerformanceHeader,
   Pill,
-  Sparkline,
   TargetProgress,
 } from "@/components/performance/perf-ui";
 import { cn } from "@/lib/utils";
@@ -76,12 +71,6 @@ export default function BranchPerformancePage() {
   const total = snapshot(combineSeries(rows.map((r) => r.series)), info.months);
   const totalTarget = rows.reduce((s, r) => s + r.target, 0);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
-
-  const leader = rows[0];
-  const fastest = [...rows].sort(
-    (a, b) => (change(b.current.enrolled, b.previous.enrolled) ?? 0) - (change(a.current.enrolled, a.previous.enrolled) ?? 0)
-  )[0];
-  const behind = [...rows].sort((a, b) => ratio(a.current.enrolled, a.target) - ratio(b.current.enrolled, b.target))[0];
 
   const exportCsv = () =>
     downloadCsv(
@@ -153,17 +142,8 @@ export default function BranchPerformancePage() {
           label="Target attainment"
           value={fmt.pct(ratio(total.current.enrolled, totalTarget), 0)}
           compareLabel={`${fmt.number(total.current.enrolled)} of ${fmt.number(totalTarget)} enrolments`}
-          spark={total.trend.map((p) => ratio(p.enrolled, p.leads))}
         />
       </KpiGrid>
-
-      {leader && (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <InsightCard icon={Trophy} tone="warning" eyebrow="Top branch" title={leader.name} detail={`${fmt.number(leader.current.enrolled)} enrolments · ${fmt.pct(ratio(leader.current.enrolled, total.current.enrolled), 0)} of network`} onClick={() => setSelectedId(leader.id)} />
-          <InsightCard icon={Rocket} tone="success" eyebrow="Fastest growing" title={fastest.name} detail={<>Enrolments <DeltaBadge value={change(fastest.current.enrolled, fastest.previous.enrolled)} className="text-[10px]" /> {info.compare}</>} onClick={() => setSelectedId(fastest.id)} />
-          <InsightCard icon={AlertTriangle} tone="danger" eyebrow={ratio(behind.current.enrolled, behind.target) < 1 ? "Behind target" : "Lowest target pace"} title={behind.name} detail={`${fmt.pct(ratio(behind.current.enrolled, behind.target), 0)} of the ${fmt.number(behind.target)} enrolment target for this period`} onClick={() => setSelectedId(behind.id)} />
-        </div>
-      )}
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -250,50 +230,49 @@ export default function BranchPerformancePage() {
 }
 
 function BranchCard({ row, onOpen }: { row: Row; onOpen: () => void }) {
-  const conversion = ratio(row.current.enrolled, row.current.leads);
+  const pace = ratio(row.current.enrolled, row.target);
+  const tone = pace >= 1 ? "success" : pace >= 0.75 ? "warning" : "danger";
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="card-shadow group flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:border-border-strong"
+      className="card-shadow flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:border-border-strong"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                row.rank === 1 ? "bg-amber-400/20 text-amber-600 dark:text-amber-300" : "bg-surface-hover text-muted-foreground"
-              )}
-            >
-              {row.rank}
-            </span>
-            <p className="truncate font-semibold text-foreground">{row.name}</p>
-          </div>
+          <p className="truncate font-semibold text-foreground">
+            <span className="mr-1.5 tabular-nums text-muted-foreground">#{row.rank}</span>
+            {row.name}
+          </p>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{row.manager} · {row.counsellors} counsellors</p>
         </div>
         <Pill tone={row.country === "United Kingdom" ? "primary" : "success"}>{row.country === "United Kingdom" ? "UK" : "BD"}</Pill>
       </div>
 
-      <div className="flex items-end justify-between gap-2">
-        <div>
-          <p className="text-[11px] text-muted-foreground">Enrolled</p>
-          <p className="text-2xl font-bold tabular-nums text-foreground">{fmt.number(row.current.enrolled)}</p>
-          <DeltaBadge value={change(row.current.enrolled, row.previous.enrolled)} className="mt-1 text-[10px]" />
+      <div>
+        <div className="flex items-end justify-between gap-2">
+          <p className="tabular-nums">
+            <span className="text-2xl font-bold text-foreground">{fmt.number(row.current.enrolled)}</span>
+            <span className="text-xs text-muted-foreground"> / {fmt.number(row.target)} enrolled</span>
+          </p>
+          <DeltaBadge value={change(row.current.enrolled, row.previous.enrolled)} className="mb-1 text-[10px]" />
         </div>
-        <Sparkline values={row.trend.map((p) => p.enrolled)} color="var(--success)" className="h-10 w-24" />
+        <div className="mt-2 flex items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-hover">
+            <div className={cn("h-full rounded-full", tone === "success" ? "bg-success" : tone === "warning" ? "bg-warning" : "bg-danger")} style={{ width: `${Math.min(100, pace * 100)}%` }} />
+          </div>
+          <span className={cn("text-[11px] font-semibold tabular-nums", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-danger")}>{Math.round(pace * 100)}%</span>
+        </div>
       </div>
 
-      <TargetProgress actual={row.current.enrolled} target={row.target} />
-
-      <dl className="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+      <dl className="grid grid-cols-3 gap-2 border-t border-border pt-3">
         <div>
           <dt className="text-[10px] text-muted-foreground">Leads</dt>
-          <dd className="text-xs font-semibold tabular-nums text-foreground">{fmt.compact(row.current.leads)}</dd>
+          <dd className="text-xs font-semibold tabular-nums text-foreground">{fmt.number(row.current.leads)}</dd>
         </div>
         <div>
-          <dt className="text-[10px] text-muted-foreground">Conv.</dt>
-          <dd className="text-xs font-semibold tabular-nums text-foreground">{fmt.pct(conversion)}</dd>
+          <dt className="text-[10px] text-muted-foreground">Conversion</dt>
+          <dd className="text-xs font-semibold tabular-nums text-foreground">{fmt.pct(ratio(row.current.enrolled, row.current.leads))}</dd>
         </div>
         <div>
           <dt className="text-[10px] text-muted-foreground">Revenue</dt>

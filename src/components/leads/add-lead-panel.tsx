@@ -9,10 +9,14 @@ import {
   countries,
   counsellors,
   leadSources,
+  leadStatuses,
   makeLeadId,
   initialsFor,
   type LeadRow,
+  type LeadStatus,
 } from "@/lib/mock/leads";
+import { useSettingsStore } from "@/lib/settings/store";
+import { leadStatusStore } from "@/lib/settings/lead-statuses";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/button-styles";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +28,8 @@ const emptyForm = {
   branch: "",
   counsellor: "",
   leadSource: "",
+  /** "Group" or "Group::Detailed status", e.g. "Follow-up::Future intake". */
+  status: "New",
   leadNote: "",
 };
 
@@ -37,6 +43,8 @@ export function AddLeadPanel({
   onAdd: (lead: LeadRow) => void;
 }) {
   const [form, setForm] = useState(emptyForm);
+  const detailedStatuses = useSettingsStore(leadStatusStore).filter((s) => s.active);
+  const [statusGroup, statusDetail] = form.status.split("::") as [LeadStatus, string?];
 
   function set<K extends keyof typeof emptyForm>(key: K, value: (typeof emptyForm)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -60,7 +68,8 @@ export function AddLeadPanel({
       country: form.country,
       branch: form.branch,
       counsellor: form.counsellor,
-      status: "New",
+      status: statusGroup,
+      statusDetail,
       leadNote: form.leadNote.trim(),
       leadSource: form.leadSource,
       createdDate: new Date().toISOString().slice(0, 10),
@@ -160,6 +169,21 @@ export function AddLeadPanel({
               <option key={s} value={s}>
                 {s}
               </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Status" hint="New leads usually start as New. Pick a detailed status if you already know more.">
+          <Select value={form.status} onChange={(e) => set("status", e.target.value)}>
+            {leadStatuses.map((group) => (
+              <optgroup key={group} label={group}>
+                <option value={group}>{group}</option>
+                {detailedStatuses.filter((s) => s.group === group).map((s) => (
+                  <option key={s.id} value={`${group}::${s.name}`}>
+                    {group} · {s.name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </Select>
         </Field>

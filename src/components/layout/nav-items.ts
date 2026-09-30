@@ -43,7 +43,7 @@ export const navSections: NavSection[] = [
           { label: "Affiliate Leads", href: "/leads?source=affiliate", badge: "New" },
           { label: "Export Leads", href: "/leads/export" },
           { label: "Follow-ups", href: "/leads/follow-ups" },
-          { label: "Leads Status", href: "/leads?tab=status" },
+          { label: "Leads Status", href: "/leads/statuses" },
           { label: "Appointment", href: "/leads?tab=appointment" },
         ],
       },
@@ -86,6 +86,7 @@ export const navSections: NavSection[] = [
           { label: "Country Management", href: "/countries/management" },
           { label: "Add Represent Country", href: "/countries?action=add" },
           { label: "View Represent Country", href: "/countries?view=list" },
+          { label: "Application Process", href: "/countries/application-process" },
         ],
       },
       {

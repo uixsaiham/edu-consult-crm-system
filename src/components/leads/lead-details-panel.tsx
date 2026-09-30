@@ -77,6 +77,7 @@ export function LeadDetailsPanel({
               <span className={cn("size-1.5 rounded-full", status.dot)} />
               {lead.status}
             </span>
+            {lead.statusDetail && <span className="ml-2 text-xs text-muted-foreground">{lead.statusDetail}</span>}
           </div>
         </div>
 

@@ -108,7 +108,7 @@ function Switch({ label, on, onChange }: { label: string; on: boolean; onChange:
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-foreground">{label}</span>
       <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", on ? "bg-primary" : "bg-border-strong")}>
-        <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform", on ? "translate-x-5" : "translate-x-0.5")} />
+        <span className={cn("absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform", on && "translate-x-5")} />
       </button>
     </div>
   );

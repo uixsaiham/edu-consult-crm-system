@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ListTodo, CalendarClock, CircleAlert } from "lucide-react";
+import { ArrowRight, ListTodo, CalendarClock, CircleAlert, type LucideIcon } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/form-controls";
 import { getLeads } from "@/lib/mock/leads";
@@ -20,14 +20,14 @@ function daysFromSnapshot(date: string) {
 function dateLabel(date: string) {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 }
-const filterClass = (selected: boolean) => cn("rounded-full px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary", selected ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted-foreground hover:bg-surface-hover");
+const maxRows = 5;
+const filterClass = (selected: boolean) => cn("rounded-full px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary", selected ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted-foreground hover:bg-surface-hover");
 const queues = ["Unassigned", "Follow-up", "Qualified"] as const;
 type Queue = (typeof queues)[number];
 
 export function OperationsOverview() {
   const [branch, setBranch] = useState("");
   const [queue, setQueue] = useState<Queue>("Unassigned");
-  const [showAll, setShowAll] = useState(false);
   const scoped = leads.filter((lead) => !branch || (branch === "unassigned" ? !lead.branch : lead.branch === branch));
   const active = scoped.filter((lead) => lead.status !== "Converted" && lead.status !== "Lost");
   const queueRows = {
@@ -57,7 +57,7 @@ export function OperationsOverview() {
           <p className="mt-1 text-xs text-muted-foreground">Sample snapshot: 17 Sep 2026 · {scoped.length} leads · {scopedApplications.length} applications · Branch filter applies to all three cards</p>
         </div>
         <div className="w-full sm:w-52">
-          <Select aria-label="Operations branch" value={branch} onChange={(event) => { setBranch(event.target.value); setShowAll(false); }}>
+          <Select aria-label="Operations branch" value={branch} onChange={(event) => setBranch(event.target.value)}>
             <option value="">All branches</option>
             <option value="unassigned">No branch assigned</option>
             {branchOptions.map((name) => <option key={name}>{name}</option>)}
@@ -65,71 +65,65 @@ export function OperationsOverview() {
         </div>
       </div>
       <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-3">
-        <Card>
-          <CardHeader title="Needs attention" subtitle="Open leads, oldest created first" icon={ListTodo} />
-          <div className="px-6 pb-5 pt-4">
-            <div className="flex flex-wrap gap-2" aria-label="Attention queue">
-              {queues.map((name) => <button key={name} type="button" aria-pressed={queue === name} onClick={() => { setQueue(name); setShowAll(false); }} className={cn("rounded-full px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary", queue === name ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted-foreground hover:bg-surface-hover")}>{name} <span className="ml-1 tabular-nums">{queueRows[name].length}</span></button>)}
-            </div>
-            <ul className="mt-3 divide-y divide-border">
-              {waiting.slice(0, showAll ? waiting.length : 4).map((lead) => <li key={lead.id}>
-                <Link href={`/leads?search=${encodeURIComponent(lead.id)}`} className="group flex items-center gap-2 rounded-lg py-3 focus-visible:outline-2 focus-visible:outline-primary">
-                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium group-hover:text-primary">{lead.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{lead.createdDate} · {lead.counsellor || "Needs a counsellor"}</span></span>
-                  <ArrowUpRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
-                </Link>
-              </li>)}
-            </ul>
-            {waiting.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No {queue.toLowerCase()} leads in this branch.</p>}
-            {waiting.length > 4 && <button type="button" onClick={() => setShowAll(!showAll)} className="mt-2 text-xs font-semibold text-primary hover:underline">{showAll ? "Show fewer" : `Show all ${waiting.length} leads`}</button>}
-          </div>
-        </Card>
-        <Card className="flex min-w-0 flex-col">
-          <CardHeader title="Upcoming deadlines" subtitle="Application, deposit, CAS and visa dates" icon={CalendarClock} />
-          <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
-            <div className="flex flex-wrap gap-2" aria-label="Deadline period">
-              {windows.map((period) => <button key={period} type="button" aria-pressed={window === period} onClick={() => setWindow(period)} className={filterClass(window === period)}>{period} <span className="ml-1 tabular-nums">{deadlineRows(period).length}</span></button>)}
-            </div>
-            <ul className="mt-3 divide-y divide-border">
-              {visibleDeadlines.map((row) => <li key={`${row.app.id}-${row.type}-${row.dueDate}`}>
-                <Link href={`/applications?search=${encodeURIComponent(row.app.id)}`} className="group flex items-start gap-3 rounded-lg py-3 focus-visible:outline-2 focus-visible:outline-primary">
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium group-hover:text-primary">{row.app.applicant}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{row.app.university}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{row.type} · {dateLabel(row.dueDate)}</span>
-                  </span>
-                  <span className={cn("shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold", row.days < 0 ? "bg-danger-soft text-danger" : row.days <= 3 ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary")}>{row.days < 0 ? `${-row.days}d overdue` : row.days === 0 ? "Due today" : `${row.days}d left`}</span>
-                  <ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>)}
-            </ul>
-            {visibleDeadlines.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No {window === "Overdue" ? "overdue deadlines" : `deadlines in the ${window.toLowerCase()}`} for this branch.</p>}
-            <p className="mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">{visibleDeadlines.length} deadlines · Upcoming periods include today. Days remaining use the sample snapshot date.</p>
-          </div>
-        </Card>
-        <Card className="flex min-w-0 flex-col">
-          <CardHeader title="Applications blocked" subtitle="Resolve the next step for each student" icon={CircleAlert} />
-          <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
-            <div className="flex flex-wrap gap-2" aria-label="Blocker category">
-              {categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={filterClass(category === item)}>{item} <span className="ml-1 tabular-nums">{blockers.filter((row) => row.category === item).length}</span></button>)}
-            </div>
-            <ul className="mt-3 divide-y divide-border">
-              {visibleBlockers.map((row) => <li key={`${row.app.id}-${row.category}-${row.reason}`}>
-                <Link href={`/applications?search=${encodeURIComponent(row.app.id)}`} className="group flex items-start gap-3 rounded-lg py-3 focus-visible:outline-2 focus-visible:outline-primary">
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium group-hover:text-primary">{row.app.applicant}</span>
-                    <span className="mt-1 block text-xs font-medium text-warning">{row.reason}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{row.app.stage} · {row.app.counsellor || "Unassigned"}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">Waiting since {dateLabel(row.since)} · {Math.max(0, -daysFromSnapshot(row.since))} days</span>
-                  </span>
-                  <ArrowUpRight aria-hidden="true" className="mt-1 size-4 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>)}
-            </ul>
-            {visibleBlockers.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No {category.toLowerCase()} blockers for this branch.</p>}
-            <p className="mt-auto border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">{new Set(visibleBlockers.map((row) => row.app.id)).size} blocked applications · Oldest blockers first. Enrolled and rejected applications are excluded.</p>
-          </div>
-        </Card>
+        <FocusCard title="Needs attention" subtitle="Open leads, oldest created first" icon={ListTodo}
+          filters={queues.map((name) => <button key={name} type="button" aria-pressed={queue === name} onClick={() => setQueue(name)} className={filterClass(queue === name)}>{name} <span className="ml-1 tabular-nums">{queueRows[name].length}</span></button>)}
+          filterLabel="Attention queue" total={waiting.length} viewAllHref="/leads" noun="leads"
+          empty={`No ${queue.toLowerCase()} leads in this branch.`}>
+          {waiting.slice(0, maxRows).map((lead) => <FocusRow key={lead.id} href={`/leads?search=${encodeURIComponent(lead.id)}`} title={lead.name} meta={<>{dateLabel(lead.createdDate)} · {lead.counsellor || "Needs a counsellor"}</>} />)}
+        </FocusCard>
+        <FocusCard title="Upcoming deadlines" subtitle="Application, deposit, CAS and visa dates" icon={CalendarClock}
+          filters={windows.map((period) => <button key={period} type="button" aria-pressed={window === period} onClick={() => setWindow(period)} className={filterClass(window === period)}>{period} <span className="ml-1 tabular-nums">{deadlineRows(period).length}</span></button>)}
+          filterLabel="Deadline period" total={visibleDeadlines.length} viewAllHref="/applications" noun="deadlines"
+          empty={`No ${window === "Overdue" ? "overdue deadlines" : `deadlines in the ${window.toLowerCase()}`} for this branch.`}>
+          {visibleDeadlines.slice(0, maxRows).map((row) => <FocusRow key={`${row.app.id}-${row.type}-${row.dueDate}`} href={`/applications?search=${encodeURIComponent(row.app.id)}`} title={row.app.applicant}
+            meta={<>{row.type} · {dateLabel(row.dueDate)} · {row.app.university}</>}
+            badge={<span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", row.days < 0 ? "bg-danger-soft text-danger" : row.days <= 3 ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary")}>{row.days < 0 ? `${-row.days}d overdue` : row.days === 0 ? "Today" : `${row.days}d left`}</span>} />)}
+        </FocusCard>
+        <FocusCard title="Applications blocked" subtitle="Resolve the next step for each student" icon={CircleAlert}
+          filters={categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={filterClass(category === item)}>{item} <span className="ml-1 tabular-nums">{blockers.filter((row) => row.category === item).length}</span></button>)}
+          filterLabel="Blocker category" total={visibleBlockers.length} viewAllHref="/applications" noun="blockers"
+          empty={`No ${category.toLowerCase()} blockers for this branch.`}>
+          {visibleBlockers.slice(0, maxRows).map((row) => <FocusRow key={`${row.app.id}-${row.category}-${row.reason}`} href={`/applications?search=${encodeURIComponent(row.app.id)}`} title={row.app.applicant}
+            meta={<><span className="font-medium text-warning">{row.reason}</span> · {row.app.counsellor || "Unassigned"}</>}
+            badge={<span className="text-[11px] tabular-nums text-muted-foreground" title={`Waiting since ${dateLabel(row.since)}`}>{Math.max(0, -daysFromSnapshot(row.since))}d</span>} />)}
+        </FocusCard>
       </div>
     </section>
+  );
+}
+
+function FocusCard({ title, subtitle, icon, filters, filterLabel, total, viewAllHref, noun, empty, children }: {
+  title: string; subtitle: string; icon: LucideIcon; filters: ReactNode; filterLabel: string;
+  total: number; viewAllHref: string; noun: string; empty: string; children: ReactNode;
+}) {
+  return (
+    <Card className="flex min-w-0 flex-col">
+      <CardHeader title={title} subtitle={subtitle} icon={icon} />
+      <div className="flex flex-1 flex-col px-6 pb-4 pt-4">
+        <div className="flex flex-wrap gap-1.5" aria-label={filterLabel}>{filters}</div>
+        {total === 0
+          ? <p className="flex flex-1 items-center justify-center py-8 text-center text-sm text-muted-foreground">{empty}</p>
+          : <ul className="mt-2 flex-1 divide-y divide-border">{children}</ul>}
+        {total > maxRows && (
+          <Link href={viewAllHref} className="mt-2 inline-flex items-center gap-1 self-start text-xs font-semibold text-primary hover:underline">
+            View all {total} {noun} <ArrowRight aria-hidden="true" className="size-3.5" />
+          </Link>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function FocusRow({ href, title, meta, badge }: { href: string; title: string; meta: ReactNode; badge?: ReactNode }) {
+  return (
+    <li>
+      <Link href={href} className="group flex items-center gap-3 rounded-lg py-2.5 focus-visible:outline-2 focus-visible:outline-primary">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium group-hover:text-primary">{title}</span>
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground">{meta}</span>
+        </span>
+        {badge && <span className="shrink-0">{badge}</span>}
+      </Link>
+    </li>
   );
 }
