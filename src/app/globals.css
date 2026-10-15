@@ -145,8 +145,8 @@ select:not([multiple]):not([size]) {
   background-image: var(--select-chevron);
   background-repeat: no-repeat;
   background-size: 0.875rem;
-  background-position: right 0.75rem center;
-  padding-right: 2.25rem;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
   text-overflow: ellipsis;
   cursor: pointer;
 }
