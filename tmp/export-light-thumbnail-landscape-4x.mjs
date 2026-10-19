@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+const tabs=await (await fetch('http://127.0.0.1:9223/json/list')).json();
+const tab=tabs.find(t=>t.type==='page');
+const ws=new WebSocket(tab.webSocketDebuggerUrl);await new Promise(r=>ws.onopen=r);
+let id=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result)}};
+function call(method,params={}){return new Promise((resolve,reject)=>{const i=++id;pending.set(i,{resolve,reject});ws.send(JSON.stringify({id:i,method,params}))})}
+await call('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:4,mobile:false});
+await call('Page.navigate',{url:'file:///Users/saiham.info21gmail.com/Documents/Dev%20Projects/BHE%20CRM/design/case-study/dashboard-mockups/crm-light-laptop-thumbnail-1920x1080.html'});
+await new Promise(r=>setTimeout(r,1500));
+await call('Runtime.evaluate',{expression:"Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode())])",awaitPromise:true});
+await new Promise(r=>setTimeout(r,1500));
+const font=await call('Runtime.evaluate',{expression:`document.fonts.check('800 140px "Plus Jakarta Sans"')`,returnByValue:true});if(!font.result.value)throw Error('Plus Jakarta Sans did not load');
+const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip:{x:0,y:0,width:1920,height:1080,scale:1}});
+const out='design/case-study/dashboard-mockups/crm-light-laptop-thumbnail-7680x4320.png';await fs.writeFile(out,Buffer.from(r.data,'base64'));const preview=await call('Page.captureScreenshot',{format:'jpeg',quality:85});await fs.writeFile('/private/tmp/bhe-light-thumbnail.jpg',Buffer.from(preview.data,'base64'));await fs.copyFile(out,'output/case-study-images/crm-light-laptop-thumbnail-7680x4320.png');console.log(JSON.stringify({file:out,width:7680,height:4320}));ws.close();

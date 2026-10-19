@@ -1,0 +1,1 @@
+All 13 PNGs rebuilt at 8x using small viewport tiles stitched into complete images. Standard section width: 12,800 pixels. Existing filenames retained, including -4x suffixes. Embedded CRM sources use native 4x captures to avoid oversized-image rendering faults. All exports visually reviewed in a contact sheet after reconstruction.
